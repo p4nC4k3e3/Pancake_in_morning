@@ -1,28 +1,24 @@
 import pygame
 import sys
-import random  # Added for random enemy selection
+import random  
 
-# Initialize Pygame
 pygame.init()
 
-# Constants
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 400
 GRAVITY = 0.5
 JUMP_STRENGTH = -10
 OBSTACLE_SPEED = 5
 
-# Fonts
 text_font = pygame.font.Font('grounds/font.otf', 50)
 small_font = pygame.font.Font('grounds/font.otf', 30)
-button_font = pygame.font.Font('grounds/font.otf', 30)  # New smaller font for buttons
+button_font = pygame.font.Font('grounds/font.otf', 30)
 
-# Base class for game objects (Abstraction and Encapsulation)
 class GameObject:
     def __init__(self, x, y, image_path, scale=(50, 50)):
-        self.__x = x  # Encapsulated (private)
-        self.__y = y  # Encapsulated (private)
-        self.image = pygame.image.load(image_path).convert_alpha()  # Changed to convert_alpha for transparency
+        self.__x = x 
+        self.__y = y  
+        self.image = pygame.image.load(image_path).convert_alpha()
         self.image = pygame.transform.scale(self.image, scale)
         self.rect = self.image.get_rect(topleft=(self.__x, self.__y))
 
@@ -40,7 +36,7 @@ class GameObject:
         self.__y = y
         self.rect.topleft = (self.__x, self.__y)
 
-    def set_image(self, image_path, scale=(50, 50)):  # New method to change image
+    def set_image(self, image_path, scale=(50, 50)):  
         self.image = pygame.image.load(image_path).convert_alpha()
         self.image = pygame.transform.scale(self.image, scale)
         self.rect = self.image.get_rect(topleft=(self.__x, self.__y))
@@ -49,14 +45,13 @@ class GameObject:
         screen.blit(self.image, (self.__x, self.__y))
 
     def update(self):
-        pass  # Abstract method, to be overridden
+        pass  
 
-# Player class (Inheritance from GameObject, Polymorphism in update)
 class Player(GameObject):
     def __init__(self, x, y, image_path):
         super().__init__(x, y, image_path)
-        self.__vel_y = 0  # Encapsulated
-        self.__on_ground = True  # Encapsulated
+        self.__vel_y = 0  
+        self.__on_ground = True  
 
     def get_vel_y(self):
         return self.__vel_y
@@ -83,11 +78,12 @@ class Player(GameObject):
             self.__vel_y = 0
             self.__on_ground = True
 
-# Obstacle class (Inheritance from GameObject, Polymorphism in update)
 class Obstacle(GameObject):
     def __init__(self, x, y, image_path):
         super().__init__(x, y, image_path)
-        self.__passed = False  # Encapsulated
+        self.__passed = False  
+        self.enemy_images = ['grounds/enem1.png', 'grounds/enem2.png', 'grounds/enem3.png']
+        self.possible_y = [280, 200]  # Possible y positions for variety
 
     def is_passed(self):
         return self.__passed
@@ -99,9 +95,10 @@ class Obstacle(GameObject):
         self.set_x(self.get_x() - OBSTACLE_SPEED)
         if self.get_x() < -50:
             self.set_x(1000)
+            self.set_y(random.choice(self.possible_y))  # Randomize y on reset
+            self.set_image(random.choice(self.enemy_images))  # Randomize image on reset
             self.__passed = False
 
-# Button class for menu
 class Button:
     def __init__(self, x, y, width, height, text, font, color=(255, 255, 255), hover_color=(200, 200, 200)):
         self.rect = pygame.Rect(x, y, width, height)
@@ -124,44 +121,46 @@ class Button:
     def is_clicked(self, mouse_pos, mouse_pressed):
         return self.rect.collidepoint(mouse_pos) and mouse_pressed[0]
 
-# Game class (Encapsulation of game state and logic)
 class Game:
     def __init__(self):
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption("RuNniNg BlOcK")
-        block_icon = pygame.image.load('grounds/block.jpg')
+        block_icon = pygame.image.load('grounds/user.png')
         pygame.display.set_icon(block_icon)
         self.clock = pygame.time.Clock()
 
-        # Load images
-        self.back_surface = pygame.image.load('grounds/back_ground.jpg').convert()  # Changed to back_ground.jpg
+        self.back_surface = pygame.image.load('grounds/back_ground.jpg').convert()
         self.back_surface = pygame.transform.scale(self.back_surface, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.ground_surface = pygame.image.load('grounds/ground.jpg').convert()
         self.ground_surface = pygame.transform.scale(self.ground_surface, (SCREEN_WIDTH, 100))
         self.ground1_surface = pygame.image.load('grounds/ground.jpg').convert()
-        self.ground1_surface = pygame.transform.scale(self.ground1_surface, (SCREEN_WIDTH, 57))
+        self.ground1_surface = pygame.transform.scale(self.ground1_surface, (SCREEN_WIDTH, 57))     
 
-        # Enemy images list
-        self.enemy_images = ['grounds/enem1.png', 'grounds/enem2.png', 'grounds/enem3.png']
-
-        # Game objects
-        self.player = Player(100, 280, 'grounds/user.png')  # Changed to user.png
+        self.player = Player(100, 280, 'grounds/user.png')  
         self.obstacles = [
-            Obstacle(1000, 280, random.choice(self.enemy_images)),  # Random enemy
-            Obstacle(600, 200, random.choice(self.enemy_images))    # Random enemy
+            Obstacle(1000, 280, random.choice(['grounds/enem1.png', 'grounds/enem2.png', 'grounds/enem3.png'])),  
+            Obstacle(600, 200, random.choice(['grounds/enem1.png', 'grounds/enem2.png', 'grounds/enem3.png']))    
         ]
 
-        # Game state
-        self.state = 'menu'  # New: menu, playing, about, settings
+        self.state = 'menu'  
         self.game_over = False
         self.score = 0
+        self.high_score = 0
         self.start_time = 0
 
-        # Menu buttons
-        self.start_button = Button(400, 150, 200, 50, "Start", button_font)  # Use button_font
-        self.about_button = Button(400, 220, 200, 50, "About", button_font)  # Use button_font
-        self.settings_button = Button(400, 290, 200, 50, "Settings", button_font)  # Use button_font
-        self.back_button = Button(400, 320, 200, 50, "Back", button_font)  # For about/settings
+        # Load high score from file if exists
+        try:
+            with open('high_score.txt', 'r') as f:
+                self.high_score = int(f.read())
+        except:
+            self.high_score = 0
+
+        self.start_button = Button(400, 150, 200, 50, "Start", button_font)  
+        self.about_button = Button(400, 220, 200, 50, "About", button_font)  
+        self.settings_button = Button(400, 290, 200, 50, "Settings", button_font)  
+        self.quit_button = Button(400, 360, 200, 50, "Quit", button_font)  # New quit button
+        self.back_button = Button(400, 320, 200, 50, "Back", button_font) 
+        self.menu_button = Button(400, 250, 200, 50, "Menu", button_font)  # For game over
 
     def handle_events(self):
         mouse_pos = pygame.mouse.get_pos()
@@ -169,6 +168,7 @@ class Game:
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                self.save_high_score()
                 pygame.quit()
                 sys.exit()
 
@@ -176,12 +176,17 @@ class Game:
             self.start_button.check_hover(mouse_pos)
             self.about_button.check_hover(mouse_pos)
             self.settings_button.check_hover(mouse_pos)
+            self.quit_button.check_hover(mouse_pos)
             if self.start_button.is_clicked(mouse_pos, mouse_pressed):
                 self.start_game()
             elif self.about_button.is_clicked(mouse_pos, mouse_pressed):
                 self.state = 'about'
             elif self.settings_button.is_clicked(mouse_pos, mouse_pressed):
                 self.state = 'settings'
+            elif self.quit_button.is_clicked(mouse_pos, mouse_pressed):
+                self.save_high_score()
+                pygame.quit()
+                sys.exit()
         elif self.state in ['about', 'settings']:
             self.back_button.check_hover(mouse_pos)
             if self.back_button.is_clicked(mouse_pos, mouse_pressed):
@@ -191,6 +196,10 @@ class Game:
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_SPACE]:
                     self.player.jump()
+            else:
+                self.menu_button.check_hover(mouse_pos)
+                if self.menu_button.is_clicked(mouse_pos, mouse_pressed):
+                    self.state = 'menu'
 
     def start_game(self):
         self.state = 'playing'
@@ -202,7 +211,8 @@ class Game:
         self.player.set_on_ground(True)
         for obstacle in self.obstacles:
             obstacle.set_passed(False)
-            obstacle.set_image(random.choice(self.enemy_images))  # Randomize enemy image on start/restart
+            obstacle.set_image(random.choice(obstacle.enemy_images)) 
+            obstacle.set_y(random.choice(obstacle.possible_y))
         self.obstacles[0].set_x(1000)
         self.obstacles[1].set_x(600)
 
@@ -211,11 +221,12 @@ class Game:
             self.player.update()
             for obstacle in self.obstacles:
                 obstacle.update()
-            # Collision detection
             for obstacle in self.obstacles:
                 if self.player.rect.colliderect(obstacle.rect):
                     self.game_over = True
-            # Update score based on time (seconds survived)
+                    if self.score > self.high_score:
+                        self.high_score = self.score
+                        self.save_high_score()
             self.score = (pygame.time.get_ticks() - self.start_time) // 1000
 
     def draw(self):
@@ -225,11 +236,14 @@ class Game:
 
         if self.state == 'menu':
             title_surf = text_font.render("RuNniNg BlOcK", True, (255, 255, 255))
-            title_rect = title_surf.get_rect(center=(SCREEN_WIDTH // 2, 50))  # Center horizontally
+            title_rect = title_surf.get_rect(center=(SCREEN_WIDTH // 2, 50))  
             self.screen.blit(title_surf, title_rect)
+            high_score_text = small_font.render(f'High Score: {self.high_score}', True, (255, 255, 255))
+            self.screen.blit(high_score_text, (10, 10))
             self.start_button.draw(self.screen)
             self.about_button.draw(self.screen)
             self.settings_button.draw(self.screen)
+            self.quit_button.draw(self.screen)
         elif self.state == 'about':
             about_text = [
                 "About:",
@@ -255,24 +269,30 @@ class Game:
                     obstacle.draw(self.screen)
             else:
                 self.screen.blit(text_font.render('Game Over', False, (255, 0, 0)), (400, 150))
-                self.screen.blit(text_font.render('Press R to Restart', False, (255, 255, 255)), (300, 200))
+                self.screen.blit(small_font.render('Press R to Restart or M to Menu', False, (255, 255, 255)), (300, 200))
+                self.menu_button.draw(self.screen)
 
-    def restart(self):
+    def handle_game_over_inputs(self):
         if self.state == 'playing' and self.game_over:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_r]:
                 self.start_game()
+            elif keys[pygame.K_m]:
+                self.state = 'menu'
+
+    def save_high_score(self):
+        with open('high_score.txt', 'w') as f:
+            f.write(str(self.high_score))
 
     def run(self):
         while True:
             self.handle_events()
             self.update()
             self.draw()
-            self.restart()
+            self.handle_game_over_inputs()
             pygame.display.update()
             self.clock.tick(60)
 
-# Run the game
 if __name__ == "__main__":
     game = Game()
     game.run()
