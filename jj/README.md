@@ -1,5 +1,5 @@
 # JJ Beauty Studio
-# lmao
+
 A small-batch beauty e-commerce platform — clean, fast, and framework-free.
 
 ### Quick Start
