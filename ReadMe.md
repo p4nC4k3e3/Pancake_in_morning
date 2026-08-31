@@ -27,7 +27,7 @@ I'm not claiming to be an expert. What I *can* show you is consistent, hands-on 
 | Project | Description | Language(s) | Status |
 |---|---|---|---|
 | `calculator/` | A simple back end calcular | Python | 🚧 In progress |
-| `jj/` | A E-commers cosmetics website | 🚧 In progress |
+| `jj/` | A E-commers cosmetics website | HTML/JavaScript/CSS | 🚧 In progress |
 | `first_game/` | Inspired by Geometry Dash | Pygame | ✅ Complete |
 
 Each project folder includes its own short `README.md` explaining what it does, how to run it, and what I learned building it.
