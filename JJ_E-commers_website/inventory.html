@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Inventory monitoring and stock management for JJ Beauty Studio.">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<title>Inventory Monitoring — JJ Admin</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="admin-sidebar">
+      <div class="sidebar-header">
+        <div class="brand"><img src="assets/logo.svg" alt="JJ logo" class="brand-logo"></div>
+      </div>
+      <nav class="admin-nav">
+        <a href="admin.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+          Dashboard
+        </a>
+        <a href="inventory.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="M3.3 7 12 12l8.7-5"/><path d="M12 22V12"/></svg>
+          Inventory
+        </a>
+        <a href="products.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5h14v14H5z"/><path d="M9 9h6"/><path d="M9 15h4"/></svg>
+          Products
+        </a>
+        <a href="https://web.facebook.com/messages/e2ee/t/7230082713756433" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Inquiries
+        </a>
+        <!-- Settings/More removed -->
+        
+      </nav>
+      <div class="admin-sidebar-foot">
+        <a href="#" id="admin-change-password" onclick="event.preventDefault(); openChangePasswordModal && openChangePasswordModal();">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5V2m0 20v-3m8.485-9.485l2.122-2.122M3.393 18.607l2.122-2.122M19 12h3M2 12h3m12.485 5.485l2.122 2.122M3.393 5.393l2.122 2.122"/></svg>
+          Change Password
+        </a>
+        <a href="#" id="admin-logout">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Logout
+        </a>
+      </div>
+        </aside>
+
+    <!-- ============ BACKDROP (for mobile sidebar) ============ -->
+    <div class="admin-sidebar-backdrop" id="admin-sidebar-backdrop"></div>
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div class="admin-topbar-left">
+          <button class="admin-sidebar-toggle" id="admin-sidebar-toggle" aria-label="Toggle sidebar navigation">
+            <span></span><span></span><span></span>
+          </button>
+          <div>
+            <h1>Inventory Monitoring</h1>
+            <p>Track stock health, respond to alerts, and keep the cosmetics catalogue balanced.</p>
+          </div>
+        </div>
+        <div class="admin-profile">
+          <img src="assets/logo.svg" alt="JJ logo" class="brand-logo">
+          <div>
+            <div class="name">Admin</div>
+            <div class="role">Store Manager</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card tone-rose">
+          <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg></span>
+          <div><div class="stat-value" id="summary-total">0</div><div class="stat-label">Total Products</div></div>
+        </div>
+        <!-- Products In Stock removed -->
+        <div class="stat-card tone-amber">
+          <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><circle cx="12" cy="12" r="9"/><path d="M12 17h.01"/></svg></span>
+          <div><div class="stat-value" id="summary-low">0</div><div class="stat-label">Low Stock Products</div></div>
+        </div>
+        <div class="stat-card tone-grey">
+          <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg></span>
+          <div><div class="stat-value" id="summary-out">0</div><div class="stat-label">Out of Stock Products</div></div>
+        </div>
+      </div>
+
+      <section class="panel" id="inventory-panel">
+        <div class="panel-head inventory-panel-head">
+          <div>
+            <h3>Inventory Overview</h3>
+            <p>Search, filter, and monitor stock across the beauty catalog.</p>
+          </div>
+          <div class="inventory-toolbar">
+            <div class="inventory-toolbar-top">
+              <label class="search-box" for="inventory-search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.2-4.2"/></svg>
+                <input type="search" id="inventory-search" placeholder="Search by product name">
+              </label>
+              <select id="inventory-category">
+                <option value="all">All Categories</option>
+                <option value="skincare">Skincare</option>
+                <option value="makeup">Makeup</option>
+                <option value="bags">Bags</option>
+                <option value="accessories">Accessories</option>
+              </select>
+              <select id="inventory-status">
+                <option value="all">All Stock Status</option>
+                <option value="in">In Stock</option>
+                <option value="low">Low Stock</option>
+                <option value="out">Out of Stock</option>
+              </select>
+            </div>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button id="add-product-btn" class="btn btn-primary">Add Product</button>
+              <button id="stock-action-btn" class="btn btn-primary">Stock In / Stock Out</button>
+              <button id="discount-btn" class="btn btn-primary">Discount</button>
+              <button id="add-category-btn" class="btn btn-primary">Add Category</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="inventory-highlight-grid">
+          <div class="panel inventory-chart-card">
+            <div class="panel-head compact-head">
+              <div>
+                <h3>Stock Distribution</h3>
+                <p>Simple visual snapshot of current inventory health.</p>
+              </div>
+            </div>
+            <div class="inventory-chart-bars" id="inventory-chart-bars"></div>
+          </div>
+
+          <div class="panel inventory-sales-distribution-card">
+            <div class="panel-head compact-head">
+              <div>
+                <h3>Sales Distribution</h3>
+                <p>Share of total units ordered by product, based on sales tracker data.</p>
+              </div>
+            </div>
+            <div class="sales-distribution-content">
+              <canvas id="sales-distribution-chart" aria-label="Sales distribution pie chart" role="img"></canvas>
+              <button id="download-sales-chart-btn" class="btn btn-outline">Download Chart</button>
+            </div>
+          </div>
+
+          <div class="panel inventory-sales-card">
+            <div class="panel-head compact-head">
+              <div>
+                <h3>Sales Tracker</h3>
+                <p>Track the product with the most order interest and the slowest-moving item.</p>
+              </div>
+            </div>
+            <div class="sales-tracker" id="sales-tracker"></div>
+          </div>
+
+          <div class="panel inventory-alert-card">
+            <div class="panel-head compact-head">
+              <div>
+                <h3>Low Stock Alerts</h3>
+                <p>Products that need attention soon.</p>
+              </div>
+            </div>
+            <ul class="inventory-alert-list" id="inventory-alert-list"></ul>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Product Management merged into Inventory table (Add Product button moved to toolbar) -->
+
+      <section class="inventory-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Product Image</th>
+              <th>Product Name</th>
+              <th>Product ID</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Stock Quantity</th>
+              <th>Stock Status</th>
+              <th>Last Updated</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="inventory-table-body"></tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="inventory-toast" role="status" aria-live="polite"></div>
+
+  <div class="modal-overlay" id="inventory-edit-modal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="inventory-edit-title">
+      <div class="modal-head">
+        <div>
+          <h3 id="inventory-edit-title">Edit Product</h3>
+          <p id="inventory-edit-subtitle">Update the product details and stock status.</p>
+        </div>
+        <button class="modal-close" type="button" data-modal-close aria-label="Close">×</button>
+      </div>
+
+      <form id="inventory-edit-form">
+        <div class="form-group">
+          <label for="inventory-edit-name">Product Name</label>
+          <input id="inventory-edit-name" name="name" type="text" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="inventory-edit-category">Category</label>
+            <select id="inventory-edit-category" name="category">
+              <option value="">— No category —</option>
+              <option value="skincare">Skincare</option>
+              <option value="makeup">Makeup</option>
+              <option value="bags">Bags</option>
+              <option value="accessories">Accessories</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="inventory-edit-price">Price</label>
+            <input id="inventory-edit-price" name="price" type="number" min="0" step="0.01" required>
+          </div>
+        </div>
+
+                <!-- Stock Quantity removed — managed exclusively via Stock In/Stock Out feature -->
+
+        <div class="form-group">
+          <label for="inventory-edit-short">Short Description</label>
+          <textarea id="inventory-edit-short" name="short" rows="2"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="inventory-edit-description">Description</label>
+          <textarea id="inventory-edit-description" name="description" rows="4"></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-outline" type="button" data-modal-close>Cancel</button>
+          <button class="btn btn-primary" type="submit">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+    const STORAGE_KEY = "admin_products_v1";
+    const DEFAULT_INVENTORY_PRODUCTS = [
+      { id: 1, name: "Rosewater Hydrating Serum", category: "skincare", price: 24.00, stock: "in", short: "A featherweight serum with rosewater and hyaluronic acid for all-day hydration.", lastUpdated: "Just updated" },
+      { id: 2, name: "Velvet Clay Cleansing Balm", category: "skincare", price: 19.50, stock: "in", short: "A balm-to-milk cleanser that lifts makeup and impurities without stripping skin.", lastUpdated: "Just updated" },
+      { id: 3, name: "Satin Whisper Lip Tint", category: "makeup", price: 16.00, stock: "low", short: "A buildable, weightless lip tint with a soft-blur satin finish.", lastUpdated: "Just updated" },
+      { id: 4, name: "Soft Focus Blurring Powder", category: "makeup", price: 22.00, stock: "in", short: "A translucent finishing powder that softens pores and controls shine.", lastUpdated: "Just updated" },
+      { id: 5, name: "Gilded Rose Bag", category: "bags", price: 28.00, stock: "in", short: "A refined everyday bag with a polished finish and practical storage.", lastUpdated: "Just updated" },
+      { id: 6, name: "Whipped Leather Tote", category: "bags", price: 21.00, stock: "out", short: "A sleek tote with a soft, sculpted shape and everyday practicality.", lastUpdated: "Just updated" },
+      { id: 7, name: "Silk Carry Clutch", category: "bags", price: 26.00, stock: "in", short: "A compact clutch with a sleek finish for evening essentials.", lastUpdated: "Just updated" },
+      { id: 8, name: "Rosé Mini Crossbody", category: "bags", price: 14.00, stock: "in", short: "A compact crossbody with a lightweight feel and everyday charm.", lastUpdated: "Just updated" }
+    ];
+
+    function getQuantityFromStock(stock) {
+      if (stock === "out") return 0;
+      if (stock === "low") return 6;
+      return 13;
+    }
+
+    function loadInventoryProducts() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return DEFAULT_INVENTORY_PRODUCTS;
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return DEFAULT_INVENTORY_PRODUCTS;
+        return parsed.map((product) => ({
+          ...product,
+          stock: product.stock || "in",
+          quantity: product.quantity ?? getQuantityFromStock(product.stock || "in"),
+          salesCount: product.salesCount ?? 0,
+          lastUpdated: product.lastUpdated || "Just updated"
+        }));
+      } catch (error) {
+        return DEFAULT_INVENTORY_PRODUCTS;
+      }
+    }
+
+    let products = loadInventoryProducts();
+
+    const CATEGORY_STORAGE_KEY = "custom_categories_v1";
+    const DELETED_CATEGORY_STORAGE_KEY = "deleted_categories_v1";
+    const baseCategoryLabels = { skincare: "Skincare", makeup: "Makeup", bags: "Bags", accessories: "Accessories" };
+
+    function loadCustomCategories() {
+      try {
+        const raw = localStorage.getItem(CATEGORY_STORAGE_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) { return []; }
+    }
+
+    function saveCustomCategories(list) {
+      localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(list));
+    }
+
+    function loadDeletedCategories() {
+      try {
+        const raw = localStorage.getItem(DELETED_CATEGORY_STORAGE_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) { return []; }
+    }
+
+    function saveDeletedCategories(list) {
+      localStorage.setItem(DELETED_CATEGORY_STORAGE_KEY, JSON.stringify(list));
+    }
+
+    function getCategoryLabels() {
+      const deleted = new Set(loadDeletedCategories());
+      const labels = { ...baseCategoryLabels };
+      loadCustomCategories().forEach((c) => { labels[c.value] = c.label; });
+      Object.keys(labels).forEach((value) => {
+        if (deleted.has(value)) delete labels[value];
+      });
+      return labels;
+    }
+
+    // Populate every category <select> in the page (filter, add form, edit form)
+    // with base + custom categories, preserving each select's current value.
+    function refreshCategorySelects() {
+      const labels = getCategoryLabels();
+      const selects = [
+        document.getElementById("inventory-category"),
+        document.getElementById("f-category"),
+        document.getElementById("inventory-edit-category")
+      ];
+      selects.forEach((select) => {
+        if (!select) return;
+        const current = select.value;
+        const hasAllOption = select.id === "inventory-category";
+        select.innerHTML = (hasAllOption ? '<option value="all">All Categories</option>' : '') +
+          Object.entries(labels).map(([value, label]) => `<option value="${value}">${label}</option>`).join('');
+        if ([...select.options].some(o => o.value === current)) select.value = current;
+      });
+    }
+
+    let categoryLabels = getCategoryLabels();
+    const statusLabels = { in: "In Stock", low: "Low Stock", out: "Out of Stock" };
+
+    const searchInput = document.getElementById("inventory-search");
+    const categoryFilter = document.getElementById("inventory-category");
+    const statusFilter = document.getElementById("inventory-status");
+    const tableBody = document.getElementById("inventory-table-body");
+    const chartBars = document.getElementById("inventory-chart-bars");
+    const alertList = document.getElementById("inventory-alert-list");
+    const salesTracker = document.getElementById("sales-tracker");
+    const toast = document.getElementById("inventory-toast");
+    const editModal = document.getElementById("inventory-edit-modal");
+    const editForm = document.getElementById("inventory-edit-form");
+    const editNameInput = document.getElementById("inventory-edit-name");
+    const editCategoryInput = document.getElementById("inventory-edit-category");
+    const editPriceInput = document.getElementById("inventory-edit-price");
+    // editQuantityInput removed — quantity managed via Stock In/Stock Out
+    const editShortInput = document.getElementById("inventory-edit-short");
+    const editDescriptionInput = document.getElementById("inventory-edit-description");
+    let editingId = null;
+    let selectedAlertId = null;
+    let pendingDeleteId = null;
+
+    function getStatus(quantity) {
+      if (!Number.isFinite(quantity) || quantity <= 0) return "out";
+      if (quantity <= 5) return "low";
+      return "in";
+    }
+
+    function getBadgeClass(status) {
+      return status === "in" ? "badge-stock in" : status === "low" ? "badge-stock low" : "badge-stock out";
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(showToast.tid);
+      showToast.tid = setTimeout(() => toast.classList.remove("show"), 2200);
+    }
+
+    const addProductBtn = document.getElementById("add-product-btn");
+    const productModal = document.getElementById("product-modal");
+    const productForm = document.getElementById("product-form");
+    const imageInput = document.getElementById("f-image");
+    const imagePreview = document.getElementById("f-image-preview");
+    const adminTableBody = document.getElementById("admin-table-body");
+    const modalTitle = document.getElementById("modal-title");
+    const modalSubtitle = document.getElementById("modal-subtitle");
+    const modalCloseBtns = document.querySelectorAll("[data-modal-close]");
+    const confirmModal = document.getElementById("confirm-modal");
+    const confirmProductName = document.getElementById("confirm-product-name");
+    const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
+    let adminEditingId = null;
+
+    function openAdminModal() {
+      productModal?.classList.add("open");
+    }
+
+    function closeAdminModal() {
+      if (!productModal) return;
+      productModal.classList.remove("open");
+      productForm?.reset();
+      if (imagePreview) {
+        imagePreview.style.display = "none";
+        imagePreview.src = "";
+      }
+      modalTitle.textContent = "Add Product";
+      modalSubtitle.textContent = "This is a visual placeholder — nothing is saved to a server.";
+      adminEditingId = null;
+    }
+
+    modalCloseBtns.forEach((btn) => btn.addEventListener("click", closeAdminModal));
+    document.querySelectorAll("[data-confirm-close]").forEach((button) => {
+      button.addEventListener("click", () => {
+        confirmModal?.classList.remove("open");
+        pendingDeleteId = null;
+      });
+    });
+
+    addProductBtn?.addEventListener("click", () => {
+      if (!productModal) return;
+      modalTitle.textContent = "Add Product";
+      modalSubtitle.textContent = "Add a new product to your catalogue.";
+      adminEditingId = null;
+      openAdminModal();
+    });
+
+    productForm?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!productForm) return;
+
+            const formData = new FormData(productForm);
+      const name = (formData.get("name") || "").toString().trim();
+      const category = (formData.get("category") || "").toString().trim();
+      const price = Number(formData.get("price") || 0);
+      // Stock starts at 0 — managed exclusively via Stock In/Stock Out
+      const quantity = 0;
+      const stock = getStockFromQuantity(quantity);
+      const shortDesc = (formData.get("short") || "").toString().trim();
+      const description = (formData.get("description") || "").toString().trim();
+      let imageData = null;
+      const file = imageInput?.files && imageInput.files[0];
+      if (file) {
+        imageData = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => reject();
+          reader.readAsDataURL(file);
+        });
+      }
+
+      if (!name) {
+        showToast("Please enter a product name.");
+        return;
+      }
+
+      if (!Number.isFinite(quantity) || quantity < 0) {
+        showToast("Please enter a valid product quantity.");
+        return;
+      }
+
+      if (price < 0) {
+        showToast("Please enter a valid price.");
+        return;
+      }
+
+      const duplicate = products.some((item) => {
+        return item.name && item.name.toString().trim().toLowerCase() === name.toLowerCase();
+      });
+      if (duplicate) {
+        showToast("Product already exists. Closing add product.");
+        closeAdminModal();
+        return;
+      }
+
+      const id = getNextInventoryProductId();
+      products.push({
+        id,
+        name,
+        category,
+        price,
+        stock,
+        quantity,
+        short: shortDesc,
+        description,
+        image: imageData,
+        lastUpdated: "Just updated"
+      });
+
+      saveProductsToStorage();
+      syncProductsFromStorage();
+      closeAdminModal();
+      showToast("Product added successfully.");
+    });
+
+    imageInput?.addEventListener("change", (event) => {
+      const file = event.target.files && event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (!imagePreview) return;
+          imagePreview.src = reader.result;
+          imagePreview.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+      } else if (imagePreview) {
+        imagePreview.style.display = "none";
+      }
+    });
+
+    async function readFileAsDataURL(file) {
+      return await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error("Unable to read file."));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function getStockFromQuantity(quantity) {
+      const value = Number(quantity);
+      if (!Number.isFinite(value) || value <= 0) return "out";
+      if (value <= 12) return "low";
+      return "in";
+    }
+
+    function saveProductsToStorage() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+    }
+
+    function getNextInventoryProductId() {
+      const ids = products.map((p) => Number(p.id)).filter(Number.isFinite);
+      return ids.length ? Math.max(...ids) + 1 : 1;
+    }
+
+    function syncProductsFromStorage() {
+      products = loadInventoryProducts();
+      renderSummary();
+      renderChart();
+      renderSalesDistribution();
+      renderAlerts();
+      renderSalesTracker();
+      renderTable();
+    }
+
+    window.addEventListener("storage", (event) => {
+      if (event.key === STORAGE_KEY) {
+        syncProductsFromStorage();
+      }
+    });
+
+    window.addEventListener("products-updated", syncProductsFromStorage);
+
+    function openEditModal(product) {
+            editingId = product.id;
+      editNameInput.value = product.name || "";
+      editCategoryInput.value = product.category || "";
+      editPriceInput.value = product.price ?? "";
+      editShortInput.value = product.short || "";
+      editDescriptionInput.value = product.description || "";
+      editModal.classList.add("open");
+      editModal.setAttribute("aria-hidden", "false");
+      editNameInput.focus();
+    }
+
+    function closeEditModal() {
+      editForm.reset();
+      editingId = null;
+      editModal.classList.remove("open");
+      editModal.setAttribute("aria-hidden", "true");
+    }
+
+    document.querySelectorAll("#inventory-edit-modal [data-modal-close]").forEach((button) => {
+      button.addEventListener("click", closeEditModal);
+    });
+
+    editModal.addEventListener("click", (event) => {
+      if (event.target === editModal) closeEditModal();
+    });
+
+    editForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+            const formData = new FormData(editForm);
+      const name = (formData.get("name") || "").toString().trim();
+      const category = (formData.get("category") || "").toString().trim();
+      const price = Number(formData.get("price") || 0);
+      const short = (formData.get("short") || "").toString().trim();
+      const description = (formData.get("description") || "").toString().trim();
+
+      if (!name) {
+        showToast("Please enter a product name.");
+        return;
+      }
+
+            const index = products.findIndex((item) => String(item.id) === String(editingId));
+      if (index === -1) {
+        showToast("Product could not be updated.");
+        return;
+      }
+
+      // Preserve existing quantity — Stock In/Stock Out handles it
+      const existingQuantity = products[index].quantity ?? 0;
+
+      products[index] = {
+        ...products[index],
+        name,
+        category,
+        price,
+        stock: getStockFromQuantity(existingQuantity),
+        quantity: existingQuantity,
+        short,
+        description,
+        lastUpdated: "Just updated"
+      };
+
+      saveProductsToStorage();
+      window.dispatchEvent(new Event("products-updated"));
+      closeEditModal();
+      showToast("Product updated successfully.");
+    });
+
+    function renderSummary() {
+      const total = products.length;
+      const inCount = products.filter((item) => getStatus(item.quantity) === "in").length;
+      const lowCount = products.filter((item) => getStatus(item.quantity) === "low").length;
+      const outCount = products.filter((item) => getStatus(item.quantity) === "out").length;
+
+      document.getElementById("summary-total").textContent = total;
+      document.getElementById("summary-low").textContent = lowCount;
+      document.getElementById("summary-out").textContent = outCount;
+    }
+
+    let selectedStatusFilter = "all";
+
+    function renderChart() {
+      const inCount = products.filter((item) => getStatus(item.quantity) === "in").length;
+      const lowCount = products.filter((item) => getStatus(item.quantity) === "low").length;
+      const outCount = products.filter((item) => getStatus(item.quantity) === "out").length;
+      const totals = [
+        { label: "In Stock", value: inCount, color: "var(--sage)", status: "in" },
+        { label: "Low Stock", value: lowCount, color: "var(--amber)", status: "low" },
+        { label: "Out of Stock", value: outCount, color: "var(--rose-deep)", status: "out" }
+      ];
+      const totalProducts = Math.max(products.length, 1);
+
+      chartBars.innerHTML = `
+        <div class="chart-segment-track" aria-label="Inventory distribution">
+          ${totals.map((item) => {
+            const width = Math.max(8, (item.value / totalProducts) * 100);
+            const activeClass = selectedStatusFilter === item.status ? 'active' : '';
+            return `
+              <button type="button" class="chart-segment ${item.status} ${activeClass}" data-status="${item.status}" style="flex:${item.value}; min-width: 8%; background:${item.color};" aria-label="Filter ${item.label}">
+                <span class="chart-segment-label">${item.label}</span>
+              </button>
+            `;
+          }).join('')}
+        </div>
+        <div class="chart-row-summary">
+          ${totals.map((item) => `
+            <div class="chart-summary-pill ${item.status}">
+              <div class="chart-summary-pill-heading">
+                <span class="chart-summary-dot"></span>
+                <strong>${item.label}</strong>
+              </div>
+              <span>${item.value} products</span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function selectStatusFilter(status) {
+      selectedStatusFilter = status;
+      statusFilter.value = status;
+      renderChart();
+      renderAlerts();
+      renderTable();
+      if (status === 'low' || status === 'out') {
+        const alertSection = document.querySelector('.inventory-alert-card');
+        if (alertSection) alertSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    chartBars.addEventListener('click', (event) => {
+      const row = event.target.closest('[data-status]');
+      if (!row) return;
+      const status = row.dataset.status;
+      if (status) selectStatusFilter(status);
+    });
+
+    let selectedSalesProductId = null;
+
+    function renderSalesTracker() {
+      const sorted = products.slice().sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0));
+      const maxCount = sorted[0] ? (sorted[0].salesCount || 0) : 0;
+      const allZero = sorted.every((item) => (item.salesCount || 0) === 0);
+      if (!selectedSalesProductId || !products.some((p) => String(p.id) === String(selectedSalesProductId))) {
+        selectedSalesProductId = sorted[0]?.id || null;
+      }
+      const selectedProduct = products.find((item) => String(item.id) === String(selectedSalesProductId));
+      if (!salesTracker) return;
+
+      salesTracker.innerHTML = `
+        <div class="sales-bar-list">
+          ${sorted.slice(0, 5).map((item) => {
+            const count = item.salesCount || 0;
+            const width = maxCount > 0 ? Math.max(8, (count / maxCount) * 100) : 8;
+            const stockStatus = getStatus(item.quantity);
+            const statusLabel = stockStatus === 'out' ? 'Out of stock' : stockStatus === 'low' ? 'Low stock' : 'In stock';
+            const fillColor = stockStatus === 'out' ? 'var(--rose-deep)' : stockStatus === 'low' ? 'var(--amber)' : 'var(--sage)';
+            const activeClass = String(item.id) === String(selectedSalesProductId) ? 'active' : '';
+            return `
+              <div class="sales-bar-row ${activeClass} ${stockStatus}" data-id="${item.id}">
+                <div class="sales-bar-meta">
+                  <span>
+                    <span class="sales-bar-name">${item.name}</span>
+                    <span class="sales-bar-status">${statusLabel}</span>
+                  </span>
+                  <span class="sales-bar-count">${count} unit${count === 1 ? '' : 's'} ordered</span>
+                </div>
+                <div class="sales-bar-track">
+                  <div class="sales-bar-fill" style="width:${width}%; background:${fillColor};"></div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <div class="sales-summary${selectedProduct ? '' : ' empty'}">
+          ${selectedProduct ? `
+            <div class="sales-summary-heading">Product details</div>
+            <div class="sales-summary-row"><span>Name</span><strong>${selectedProduct.name}</strong></div>
+            <div class="sales-summary-row"><span>Ordered quantity</span><strong>${selectedProduct.salesCount || 0}</strong></div>
+            <div class="sales-summary-row"><span>Stock</span><strong>${selectedProduct.quantity} (${selectedProduct.stock})</strong></div>
+            <div class="sales-summary-row"><span>Last updated</span><strong>${selectedProduct.lastUpdated}</strong></div>
+          ` : `Select a product bar to view details.`}
+        </div>
+        <div class="sales-note">${allZero ? 'No ordered quantities recorded yet. The tracker updates when a product is ordered.' : 'Click any bar to inspect that product and see its current stock status.'}</div>
+      `;
+    }
+
+    let salesDistributionChart = null;
+    function renderSalesDistribution() {
+      const labels = products.filter((item) => (item.salesCount || 0) > 0).map((item) => item.name);
+      const data = products.filter((item) => (item.salesCount || 0) > 0).map((item) => item.salesCount || 0);
+      const colors = [
+        'rgba(196, 106, 130, 0.85)',
+        'rgba(229, 183, 199, 0.85)',
+        'rgba(146, 163, 148, 0.85)',
+        'rgba(175, 76, 108, 0.85)',
+        'rgba(217, 151, 166, 0.85)',
+        'rgba(244, 219, 222, 0.85)',
+        'rgba(124, 121, 128, 0.85)',
+        'rgba(204, 105, 123, 0.85)'
+      ];
+      const canvas = document.getElementById('sales-distribution-chart');
+      if (!canvas) return;
+
+      if (salesDistributionChart) {
+        salesDistributionChart.destroy();
+      }
+
+      const chartData = labels.length ? data : [1];
+      const chartLabels = labels.length ? labels : ['No orders'];
+      const chartColors = labels.length ? labels.map((_, index) => colors[index % colors.length]) : ['rgba(205, 205, 205, 0.6)'];
+
+      salesDistributionChart = new Chart(canvas, {
+        type: 'pie',
+        data: {
+          labels: chartLabels,
+          datasets: [{
+            data: chartData,
+            backgroundColor: chartColors,
+            borderColor: '#fff',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { usePointStyle: true, padding: 16 }
+            },
+            tooltip: {
+              callbacks: {
+                label(context) {
+                  const value = context.parsed || 0;
+                  const total = context.dataset.data.reduce((sum, item) => sum + item, 0);
+                  const percent = total ? Math.round((value / total) * 100) : 0;
+                  return `${context.label}: ${value} units (${percent}%)`;
+                }
+              }
+            }
+          },
+          maintainAspectRatio: false,
+          responsive: true
+        }
+      });
+    }
+
+    const downloadSalesChartBtn = document.getElementById('download-sales-chart-btn');
+    if (downloadSalesChartBtn) {
+      downloadSalesChartBtn.addEventListener('click', () => {
+        const canvas = document.getElementById('sales-distribution-chart');
+        if (!canvas) return;
+        const now = new Date();
+        const date = now.toISOString().slice(0, 10);
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL('image/png');
+        link.download = `sales-distribution-${date}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+    }
+
+    function selectSalesProduct(id) {
+      selectedSalesProductId = id;
+      renderSalesTracker();
+    }
+
+    if (salesTracker) {
+      salesTracker.addEventListener('click', (event) => {
+        const row = event.target.closest('.sales-bar-row');
+        if (!row) return;
+        const id = row.dataset.id;
+        if (id) selectSalesProduct(id);
+      });
+    }
+
+    function renderAlerts() {
+      const urgent = products.filter((item) => item.quantity <= 12).sort((a, b) => a.quantity - b.quantity);
+      if (!urgent.length) {
+        alertList.innerHTML = '<li class="alert-empty">No stock alerts right now. Inventory looks healthy.</li>';
+        return;
+      }
+
+      alertList.innerHTML = urgent.slice(0, 6).map((item) => {
+        const severity = item.quantity === 0 ? 'out' : 'low';
+        const activeClass = String(item.id) === String(selectedAlertId) ? 'active' : '';
+        const statusSelected = String(selectedStatusFilter) === severity ? 'status-selected' : '';
+        return `
+          <li data-id="${item.id}" class="inventory-alert-item ${severity} ${activeClass} ${statusSelected}">
+            <div class="alert-main">
+              <strong>${item.name}</strong>
+              <span class="alert-count">${item.quantity === 0 ? "Out of Stock" : `${item.quantity} left`}</span>
+            </div>
+            <div class="alert-controls">
+              <span class="alert-pill ${severity}">${item.quantity === 0 ? "Out of Stock" : "Low Stock"}</span>
+              <button class="btn btn-sm btn-primary restock-btn" data-id="${item.id}" type="button">Restock</button>
+            </div>
+          </li>
+        `;
+      }).join("");
+    }
+
+    // Handle restock clicks and quick navigation to edit modal
+    alertList.addEventListener('click', (event) => {
+      const btn = event.target.closest('.restock-btn');
+      if (btn) {
+        const id = btn.dataset.id;
+        restockProduct(id);
+        return;
+      }
+
+      // Click on the list item opens the edit modal for quick adjustments
+      const li = event.target.closest('li.inventory-alert-item');
+      if (li) {
+        const id = li.dataset.id;
+        selectedAlertId = id;
+        renderAlerts();
+        const product = products.find((p) => String(p.id) === String(id));
+        if (product) openEditModal(product);
+      }
+    });
+
+        function restockProduct(id) {
+      const index = products.findIndex((p) => String(p.id) === String(id));
+      if (index === -1) { showToast('Product not found'); return; }
+      const previousQty = Number(products[index].quantity ?? 0);
+      const restockQty = 20;
+      const updatedQty = previousQty + restockQty;
+      products[index].quantity = updatedQty;
+      products[index].stock = getStockFromQuantity(updatedQty);
+      products[index].lastUpdated = 'Just updated';
+      saveProductsToStorage();
+      window.dispatchEvent(new Event('products-updated'));
+      showToast(`${products[index].name} restocked by ${restockQty} units to ${updatedQty}`);
+    }
+
+    function renderTable() {
+      const term = searchInput.value.trim().toLowerCase();
+      const category = categoryFilter.value;
+      const status = statusFilter.value;
+
+      const filtered = products.filter((item) => {
+        const matchesTerm = item.name.toLowerCase().includes(term);
+        const matchesCategory = category === "all" || item.category === category;
+        const itemStatus = getStatus(item.quantity);
+        const matchesStatus = status === "all" || itemStatus === status;
+        return matchesTerm && matchesCategory && matchesStatus;
+      });
+
+      if (!filtered.length) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="9" class="empty-row">No products match the current filters.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      tableBody.innerHTML = filtered.map((item) => `
+        <tr>
+          <td>
+            <div class="row-thumb inventory-thumb" aria-label="${item.name}">
+              ${item.image ? `<img src="${item.image}" alt="${item.name}" style="width:44px;height:44px;object-fit:cover;border-radius:8px;display:block;">` : `<span>${(item.name || "P").slice(0, 2).toUpperCase()}</span>`}
+            </div>
+          </td>
+          <td><div class="row-name">${item.name}</div></td>
+          <td>${item.id}</td>
+          <td>${categoryLabels[item.category] || item.category}</td>
+          <td><div style="display:flex; flex-direction:column; gap:2px; white-space:nowrap;">${item.discount && item.discount.percentage > 0 ? `<span style="text-decoration:line-through; color:var(--ink-faint); font-size:.82rem;">₱${Number(item.price).toFixed(2)}</span><strong style="color:var(--rose-deep);">₱${Number(item.discount.discountedPrice).toFixed(2)}</strong>` : `<strong>₱${Number(item.price).toFixed(2)}</strong>`}</div></td>
+          <td>${item.quantity}</td>
+          <td><span class="${getBadgeClass(getStatus(item.quantity))}"><span class="dot"></span>${statusLabels[getStatus(item.quantity)]}</span></td>
+          <td>${item.lastUpdated}</td>
+                    <td class="sticky-action-cell">
+            <div class="inventory-action-group">
+              <button class="btn btn-outline btn-sm" data-action="view" data-id="${item.id}" title="View product details">View</button>
+              <button class="btn btn-outline btn-sm" data-action="edit" data-id="${item.id}" title="Edit product">Edit</button>
+              <button class="btn btn-ghost btn-sm" data-action="delete" data-id="${item.id}" title="Delete product">Delete</button>
+            </div>
+          </td>
+        </tr>
+      `).join("");
+
+      tableBody.querySelectorAll("button[data-action]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const action = button.dataset.action;
+          const row = button.closest("tr");
+          const productId = button.dataset.id;
+          const productName = row.querySelector(".row-name").textContent;
+
+          if (action === "view") {
+            window.location.href = `product-details.html?id=${productId}`;
+            return;
+          }
+
+          if (action === "edit") {
+            const product = products.find((item) => String(item.id) === String(productId));
+            if (product) {
+              openEditModal(product);
+            }
+            return;
+          }
+
+          if (action === "delete") {
+            const prod = products.find((p) => String(p.id) === String(productId));
+            if (!prod) return;
+            pendingDeleteId = productId;
+            if (confirmProductName) confirmProductName.textContent = prod.name;
+            if (confirmModal) confirmModal.classList.add("open");
+            return;
+          }
+
+          showToast(`${action.toUpperCase()} action for ${productName}`);
+        });
+      });
+    }
+
+    confirmModal?.addEventListener("click", (e) => {
+      if (e.target === confirmModal) {
+        confirmModal.classList.remove("open");
+        pendingDeleteId = null;
+      }
+    });
+
+    confirmDeleteBtn?.addEventListener("click", () => {
+      if (!pendingDeleteId) return;
+      const prod = products.find((p) => String(p.id) === String(pendingDeleteId));
+      products = products.filter((p) => String(p.id) !== String(pendingDeleteId));
+      saveProductsToStorage();
+      window.dispatchEvent(new Event('products-updated'));
+      confirmModal?.classList.remove("open");
+      renderSummary(); renderChart(); renderAlerts(); renderTable();
+      if (prod) showToast(`${prod.name} deleted`);
+      pendingDeleteId = null;
+    });
+
+    [searchInput, categoryFilter, statusFilter].forEach((element) => {
+      element.addEventListener("input", renderTable);
+      element.addEventListener("change", renderTable);
+    });
+
+    // ==================== ADD CATEGORY ====================
+    const addCategoryBtn = document.getElementById('add-category-btn');
+    const categoryModal = document.getElementById('category-modal');
+    const categoryForm = document.getElementById('category-form');
+    const categoryNameInput = document.getElementById('category-name');
+    const categoryFormError = document.getElementById('category-form-error');
+
+    if (addCategoryBtn && categoryModal && categoryForm) {
+      addCategoryBtn.addEventListener('click', function(){
+        categoryNameInput.value = '';
+        if (categoryFormError) categoryFormError.textContent = '';
+        categoryModal.classList.add('open');
+        categoryNameInput.focus();
+      });
+
+      categoryModal.addEventListener('click', function(e){
+        if (e.target === categoryModal || e.target.closest('[data-category-close]')) {
+          categoryModal.classList.remove('open');
+        }
+      });
+
+      categoryForm.addEventListener('submit', function(e){
+        e.preventDefault();
+        const name = categoryNameInput.value.trim();
+        if (!name) return;
+        const value = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const existingLabels = getCategoryLabels();
+        if (!value || existingLabels[value]) {
+          if (categoryFormError) categoryFormError.textContent = 'That category already exists or is invalid.';
+          return;
+        }
+        let custom = loadCustomCategories();
+        custom.push({ value, label: name });
+        saveCustomCategories(custom);
+
+        const deleted = loadDeletedCategories();
+        const restored = deleted.filter((item) => item !== value);
+        if (restored.length !== deleted.length) {
+          saveDeletedCategories(restored);
+          window.dispatchEvent(new Event('products-updated'));
+        }
+
+        categoryLabels = getCategoryLabels();
+        refreshCategorySelects();
+        renderCategoryList();
+        renderTable();
+        categoryModal.classList.remove('open');
+        showToast(`"${name}" category added`);
+      });
+    }
+
+    function renderCategoryList() {
+      const categoryList = document.getElementById('category-list');
+      if (!categoryList) return;
+      const labels = getCategoryLabels();
+      const entries = Object.entries(labels);
+      if (!entries.length) {
+        categoryList.innerHTML = '<p style="margin:0; color:var(--ink-soft);">No categories available.</p>';
+        return;
+      }
+      categoryList.innerHTML = entries.map(([value, label]) => `
+        <div class="category-item" style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; border:1px solid var(--line); border-radius:12px;">
+          <span>${label}</span>
+          <button type="button" class="btn btn-sm btn-ghost delete-category-btn" data-category="${value}" style="min-width:auto; padding:8px 12px;">Delete</button>
+        </div>
+      `).join('');
+      categoryList.querySelectorAll('.delete-category-btn').forEach((button) => {
+        button.addEventListener('click', () => {
+          const value = button.dataset.category;
+          if (!value) return;
+          const custom = loadCustomCategories();
+          const deleted = loadDeletedCategories();
+          if (custom.some((item) => item.value === value)) {
+            saveCustomCategories(custom.filter((item) => item.value !== value));
+          } else if (!deleted.includes(value)) {
+            deleted.push(value);
+            saveDeletedCategories(deleted);
+          }
+          categoryLabels = getCategoryLabels();
+          refreshCategorySelects();
+          renderCategoryList();
+          renderTable();
+          window.dispatchEvent(new Event('products-updated'));
+          showToast('Category deleted.');
+        });
+      });
+    }
+
+    refreshCategorySelects();
+    renderCategoryList();
+    renderSummary();
+    renderChart();
+    renderSalesDistribution();
+    renderSalesTracker();
+    renderAlerts();
+    renderTable();
+    });
+  </script>
+
+  <!-- ============ ADD / EDIT MODAL ============ -->
+  <div class="modal-overlay" id="product-modal">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <h3 id="modal-title">Add Product</h3>
+          <p id="modal-subtitle">This is a visual placeholder — nothing is saved to a server.</p>
+        </div>
+        <button class="modal-close" data-modal-close aria-label="Close">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form id="product-form">
+        <div class="form-group">
+          <label for="f-name">Product Name</label>
+          <input type="text" id="f-name" name="name" placeholder="e.g. Rosewater Hydrating Serum" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="f-category">Category</label>
+            <select id="f-category" name="category">
+              <option value="">— No category —</option>
+              <option value="skincare">Skincare</option>
+              <option value="makeup">Makeup</option>
+              <option value="bags">Bags</option>
+              <option value="accessories">Accessories</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="f-price">Price (₱)</label>
+            <input type="number" id="f-price" name="price" step="0.01" min="0" placeholder="24.00" required>
+          </div>
+        </div>
+                <!-- Stock Quantity removed — managed exclusively via Stock In/Stock Out feature -->
+        <div class="form-group">
+          <label for="f-image">Product Image</label>
+          <input type="file" id="f-image" name="image" accept="image/*">
+          <img id="f-image-preview" alt="Preview" style="display:none; width:100px; height:100px; object-fit:cover; border-radius:8px; margin-top:8px;" />
+        </div>
+        <div class="form-group">
+          <label for="f-short">Short Description</label>
+          <textarea id="f-short" name="short" rows="2" placeholder="Short description for product card"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="f-description">Full Description</label>
+          <textarea id="f-description" name="description" rows="5" placeholder="Detailed product description for product page and admin records"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" data-modal-close>Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ DELETE CONFIRM MODAL ============ -->
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal confirm">
+      <div class="warn-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+      </div>
+      <h3>Delete this product?</h3>
+      <p style="color:var(--ink-soft); font-size:.9rem; margin:10px 0 24px;">"<span id="confirm-product-name"></span>" will be removed from this preview table. This cannot be undone here.</p>
+      <div class="modal-actions">
+        <button class="btn btn-outline" data-confirm-close>Cancel</button>
+        <button class="btn btn-primary" id="confirm-delete-btn" style="background:#A8514F;">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  
+    <!-- ============ STOCK IN / STOCK OUT MODAL ============ -->
+  <div class="modal-overlay" id="stock-action-modal">
+    <div class="modal" style="max-width:700px;">
+      <div class="modal-head">
+        <div>
+          <h3 id="stock-action-title">Stock In / Stock Out</h3>
+          <p id="stock-action-subtitle">Adjust stock quantities for any product.</p>
+        </div>
+        <button class="modal-close" type="button" data-stock-close aria-label="Close"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button>
+      </div>
+      <div class="stock-search-wrapper">
+        <label for="stock-search-input" style="display:block; font-size:.9rem; color:var(--ink-soft); margin-bottom:8px;">Search products</label>
+        <input id="stock-search-input" list="stock-product-suggestions" type="search" placeholder="Type product name to filter..." style="width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:12px; font-size:.95rem; background:var(--white); color:var(--ink); box-sizing:border-box;">
+        <datalist id="stock-product-suggestions"></datalist>
+      </div>
+      <div style="overflow-x:auto; margin-top:18px;">
+        <table class="admin-table" style="min-width:0; width:100%;">
+          <thead>
+            <tr>
+              <th style="white-space:nowrap;">Product Name</th>
+              <th style="white-space:nowrap;">Current Qty</th>
+              <th style="white-space:nowrap;">Stock In</th>
+              <th style="white-space:nowrap;">Stock Out</th>
+            </tr>
+          </thead>
+          <tbody id="stock-action-table-body"></tbody>
+        </table>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" type="button" data-stock-close>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ DISCOUNT MODAL ============ -->
+  <div class="modal-overlay" id="discount-modal">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <h3 id="discount-modal-title">Set Product Discount</h3>
+          <p id="discount-modal-subtitle">Select a product and apply a percentage discount.</p>
+        </div>
+        <button class="modal-close" type="button" data-discount-close aria-label="Close"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button>
+      </div>
+            <form id="discount-form">
+        <div class="form-group">
+          <label for="discount-product-select">Product</label>
+          <div style="position:relative;">
+            <input type="text" id="discount-search" placeholder="Search product..." autocomplete="off" style="width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:8px; margin-bottom:6px; font-size:.9rem; box-sizing:border-box;">
+            <div id="discount-search-suggestions" style="display:none; position:absolute; top:calc(100% - 4px); left:0; right:0; background:#fff; border:1px solid var(--line); border-radius:8px; box-shadow:0 12px 30px rgba(0,0,0,.12); max-height:220px; overflow-y:auto; z-index:20;"></div>
+          </div>
+          <select id="discount-product-select" name="productId" required>
+            <option value="">— Select a product —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="discount-percentage">Discount (%)</label>
+          <input type="number" id="discount-percentage" name="percentage" min="0" max="100" step="1" value="0" required>
+        </div>
+        <div id="discount-preview" style="margin-top:12px; padding:16px; border-radius:12px; background:var(--blush-soft); display:none;">
+          <div style="font-weight:700; margin-bottom:6px;">Live Preview</div>
+          <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+            <span style="font-size:1.2rem; color:var(--ink-soft);"><s id="discount-original-price">₱0.00</s></span>
+            <span style="font-size:1.4rem; color:var(--rose-deep); font-weight:700;" id="discount-discounted-price">₱0.00</span>
+            <span id="discount-badge" style="display:none; background:var(--rose-deep); color:white; padding:4px 10px; border-radius:999px; font-size:.75rem; font-weight:700;"></span>
+          </div>
+        </div>
+        <div class="form-group" id="discount-active-badge-container" style="display:none;">
+          <div style="display:flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px; background:var(--sage-bg);">
+            <span style="font-weight:600; color:#3F5B3E;">✔ Active discount applied</span>
+            <button type="button" id="discount-remove-btn" class="btn btn-sm" style="background:#A8514F; color:white; border:none; margin-left:auto;">Remove Discount</button>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-outline" type="button" data-discount-close>Cancel</button>
+          <button class="btn btn-primary" type="submit">Apply Discount</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ ADD CATEGORY MODAL ============ -->
+  <div class="modal-overlay" id="category-modal">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <h3>Add Category</h3>
+          <p>Create a new product category for the catalog.</p>
+        </div>
+        <button class="modal-close" type="button" data-category-close aria-label="Close"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button>
+      </div>
+      <form id="category-form">
+        <div class="form-group">
+          <label for="category-name">Category Name</label>
+          <input type="text" id="category-name" name="categoryName" placeholder="e.g. Fragrance" required>
+        </div>
+        <div class="admin-login-error" id="category-form-error"></div>
+        <div class="modal-actions">
+          <button class="btn btn-outline" type="button" data-category-close>Cancel</button>
+          <button class="btn btn-primary" type="submit">Add Category</button>
+        </div>
+      </form>
+      <div class="category-list-panel" style="margin-top:24px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px;">
+          <h4 style="margin:0; font-size:1rem;">Custom Categories</h4>
+          <span style="color:var(--ink-soft); font-size:.85rem;">Only custom categories can be deleted.</span>
+        </div>
+        <div id="category-list" style="display:flex; flex-direction:column; gap:10px;"> </div>
+      </div>
+    </div>
+  </div>
+
+    <style>
+      /* Stock In/Out modal: compact inline action controls */
+      .stock-action-controls{ display:flex; gap:6px; align-items:center; }
+      .stock-action-controls input[type="number"]{ width:60px; padding:6px 8px; border:1px solid var(--line); border-radius:8px; font-size:.85rem; text-align:center; }
+      .stock-action-controls .btn{ padding:6px 12px; font-size:.78rem; white-space:nowrap; min-width:0; flex:0 0 auto; }
+      /* Action buttons: prevent text wrapping */
+      .inventory-action-group .btn{ white-space:nowrap; min-width:50px; text-align:center; }
+      /* Mobile: stack Stock In/Out controls vertically + make modal content scrollable */
+      @media (max-width: 720px){
+        .stock-action-controls{ flex-direction:column; gap:4px; }
+        .stock-action-controls input[type="number"]{ width:100%; }
+        /* Stock In/Out modal table: switch to stacked card layout on mobile */
+        #stock-action-modal .modal{ padding: 16px; max-width:100vw; }
+        #stock-action-modal .admin-table,
+        #stock-action-modal .admin-table thead,
+        #stock-action-modal .admin-table tbody,
+        #stock-action-modal .admin-table tr,
+        #stock-action-modal .admin-table th,
+        #stock-action-modal .admin-table td{ display:block; }
+        #stock-action-modal .admin-table thead{ display:none; }
+        #stock-action-modal .admin-table tr{
+          padding: 12px;
+          margin-bottom: 12px;
+          background: var(--white);
+          border: 1px solid var(--line);
+          border-radius: 12px;
+        }
+        #stock-action-modal .admin-table td{
+          padding: 6px 0;
+          border: none;
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          gap:8px;
+          flex-wrap:wrap;
+        }
+        #stock-action-modal .admin-table td:first-child{
+          font-weight:700;
+          font-size:1rem;
+          border-bottom:1px solid var(--line);
+          margin-bottom:8px;
+          padding-bottom:10px;
+          display:block;
+          width:100%;
+        }
+        #stock-action-modal .stock-action-controls{ width:100%; }
+        #stock-action-modal .stock-action-controls input[type="number"]{ width:50px; }
+      }
+      /* Mobile modal buttons */
+      @media (max-width: 560px){
+        .modal-actions .btn{ width:100%; height:auto; min-height:44px; max-width:100%; box-sizing:border-box; }
+        /* Edit modal: ensure all content + buttons fit within modal padding */
+        #inventory-edit-modal .modal{ padding-bottom:24px; }
+        #inventory-edit-modal .modal-actions{ padding: 0; margin-top:24px; }
+      }
+    </style>
+
+  <script>
+    (function(){
+      const btn = document.getElementById('admin-logout');
+      if (!btn) return;
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        try{ sessionStorage.removeItem('jj_admin_authenticated'); }catch(_){ }
+        window.location.replace('index.html');
+      });
+    })();
+  </script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      // ==================== STOCK IN / STOCK OUT ====================
+      const stockActionBtn = document.getElementById('stock-action-btn');
+      const stockModal = document.getElementById('stock-action-modal');
+      const stockTableBody = document.getElementById('stock-action-table-body');
+      const stockSearchInput = document.getElementById('stock-search-input');
+      const stockSuggestionList = document.getElementById('stock-product-suggestions');
+
+      function getProductsForStock() {
+        try {
+          const raw = localStorage.getItem('admin_products_v1');
+          if (!raw) return [];
+          const parsed = JSON.parse(raw);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch(e) { return []; }
+      }
+
+      function getStockSearchQuery() {
+        return (stockSearchInput?.value || '').trim().toLowerCase();
+      }
+
+      function buildStockSuggestions(products, query) {
+        if (!stockSuggestionList) return;
+        const names = products
+          .map(p => p.name || '')
+          .filter(Boolean)
+          .map(name => name.trim())
+          .filter((value, index, self) => self.indexOf(value) === index);
+        const candidates = query ?
+          names.filter(name => name.toLowerCase().includes(query)).slice(0, 8)
+          : names.slice(0, 8);
+        stockSuggestionList.innerHTML = candidates.map(name => `<option value="${name}"></option>`).join('');
+      }
+
+      function saveStockProducts(prods) {
+        localStorage.setItem('admin_products_v1', JSON.stringify(prods));
+        window.dispatchEvent(new Event('products-updated'));
+      }
+
+      function getStockStatus(qty) {
+        if (!Number.isFinite(qty) || qty <= 0) return 'out';
+        if (qty <= 5) return 'low';
+        return 'in';
+      }
+
+      function renderStockTable() {
+        const prods = getProductsForStock();
+        const query = getStockSearchQuery();
+        const scored = prods
+          .map(p => {
+            const name = (p.name || '').toLowerCase();
+            let score = 0;
+            if (!query) score = 1;
+            if (name === query) score += 100;
+            if (name.startsWith(query)) score += 50;
+            if (name.includes(query)) score += 10;
+            return { p, score };
+          })
+          .filter(item => item.score > 0)
+          .sort((a, b) => {
+            if (b.score !== a.score) return b.score - a.score;
+            return (a.p.name || '').localeCompare(b.p.name || '');
+          });
+
+        buildStockSuggestions(prods, query);
+
+        if (!stockTableBody) return;
+        if (!scored.length) {
+          stockTableBody.innerHTML = `<tr><td colspan="4" style="padding:18px 0; text-align:center; color:var(--ink-soft);">No products match your search.</td></tr>`;
+          return;
+        }
+        stockTableBody.innerHTML = scored.map(({ p }) => `
+          <tr data-id="${p.id}">
+            <td><strong>${p.name}</strong></td>
+            <td class="stock-current-qty" data-id="${p.id}">${Number(p.quantity ?? 0)}</td>
+            <td>
+              <div class="stock-action-controls">
+                <input type="number" class="stock-in-input" min="1" step="1" value="1" placeholder="Qty">
+                <button class="btn btn-primary btn-sm stock-in-btn" type="button">+ Stock In</button>
+              </div>
+            </td>
+            <td>
+              <div class="stock-action-controls">
+                <input type="number" class="stock-out-input" min="1" step="1" value="1" placeholder="Qty">
+                <button class="btn btn-ghost btn-sm stock-out-btn" type="button">− Stock Out</button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      function updateSummaryAndChart() {
+        const prods = getProductsForStock();
+        const total = prods.length;
+        const low = prods.filter(p => getStockStatus(Number(p.quantity ?? 0)) === 'low').length;
+        const out = prods.filter(p => getStockStatus(Number(p.quantity ?? 0)) === 'out').length;
+        document.getElementById('summary-total').textContent = total;
+        document.getElementById('summary-low').textContent = low;
+        document.getElementById('summary-out').textContent = out;
+        // Re-trigger chart/alert/sales render via event
+        if (typeof syncProductsFromStorage === 'function') {
+          syncProductsFromStorage();
+        } else {
+          window.dispatchEvent(new Event('products-updated'));
+        }
+      }
+
+      function handleStockAction(tr, isIn) {
+        const id = tr.dataset.id;
+        const input = isIn ? tr.querySelector('.stock-in-input') : tr.querySelector('.stock-out-input');
+        const qty = parseInt(input?.value, 10) || 1;
+        if (qty <= 0) { alert('Enter a quantity greater than 0.'); return; }
+
+        const prods = getProductsForStock();
+        const idx = prods.findIndex(p => String(p.id) === String(id));
+        if (idx === -1) return;
+
+        const current = Number(prods[idx].quantity ?? 0);
+        let newQty;
+        if (isIn) {
+          newQty = current + qty;
+        } else {
+          newQty = Math.max(0, current - qty);
+          if (newQty === 0 && current - qty < 0) {
+            alert('Stock Out would exceed available quantity. Clamped to 0.');
+          }
+        }
+        prods[idx].quantity = newQty;
+        prods[idx].stock = getStockStatus(newQty);
+        prods[idx].lastUpdated = 'Just updated';
+        saveStockProducts(prods);
+
+        // Update row in-place
+        const qtyCell = tr.querySelector('.stock-current-qty');
+        if (qtyCell) qtyCell.textContent = newQty;
+
+        updateSummaryAndChart();
+      }
+
+      if (stockActionBtn && stockModal && stockTableBody) {
+        if (stockSearchInput) {
+          stockSearchInput.addEventListener('input', renderStockTable);
+          stockSearchInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              renderStockTable();
+            }
+          });
+        }
+
+        stockActionBtn.addEventListener('click', function(){
+          if (stockSearchInput) stockSearchInput.value = '';
+          renderStockTable();
+          stockModal.classList.add('open');
+        });
+
+        stockModal.addEventListener('click', function(e){
+          if (e.target === stockModal || e.target.closest('[data-stock-close]')) {
+            stockModal.classList.remove('open');
+          }
+        });
+
+        stockTableBody.addEventListener('click', function(e){
+          const btn = e.target.closest('.stock-in-btn, .stock-out-btn');
+          if (!btn) return;
+          const tr = btn.closest('tr');
+          if (!tr) return;
+          const isIn = btn.classList.contains('stock-in-btn');
+          handleStockAction(tr, isIn);
+        });
+      }
+
+      // ==================== DISCOUNT MODAL ====================
+            const discountBtn = document.getElementById('discount-btn');
+      const discountModal = document.getElementById('discount-modal');
+      const discountForm = document.getElementById('discount-form');
+      const discountProductSelect = document.getElementById('discount-product-select');
+      const discountSearchInput = document.getElementById('discount-search');
+      const discountPercentageInput = document.getElementById('discount-percentage');
+      const discountOriginalPrice = document.getElementById('discount-original-price');
+      const discountDiscountedPrice = document.getElementById('discount-discounted-price');
+      const discountPreview = document.getElementById('discount-preview');
+      const discountBadge = document.getElementById('discount-badge');
+      const discountActiveContainer = document.getElementById('discount-active-badge-container');
+      const discountRemoveBtn = document.getElementById('discount-remove-btn');
+
+      function getDiscountProducts() {
+        try {
+          const raw = localStorage.getItem('admin_products_v1');
+          if (!raw) return [];
+          return JSON.parse(raw);
+        } catch(e) { return []; }
+      }
+
+      function saveDiscountProducts(prods) {
+        localStorage.setItem('admin_products_v1', JSON.stringify(prods));
+        window.dispatchEvent(new Event('products-updated'));
+      }
+
+            function populateDiscountProductSelect(selectedId) {
+        const prods = getDiscountProducts();
+        const searchTerm = (discountSearchInput?.value || '').trim().toLowerCase();
+        discountProductSelect.innerHTML = '<option value="">— Select a product —</option>';
+        const filtered = searchTerm ? prods.filter(p => p.name.toLowerCase().includes(searchTerm)) : prods;
+        if (!filtered.length) {
+          const opt = document.createElement('option');
+          opt.value = '';
+          opt.textContent = '— No products match —';
+          opt.disabled = true;
+          discountProductSelect.appendChild(opt);
+          return;
+        }
+        filtered.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.id;
+          opt.textContent = p.name;
+          if (String(p.id) === String(selectedId)) opt.selected = true;
+          discountProductSelect.appendChild(opt);
+        });
+      }
+
+      function updateDiscountPreview() {
+        const prods = getDiscountProducts();
+        const selectedId = discountProductSelect.value;
+        const pct = parseInt(discountPercentageInput.value, 10) || 0;
+        const product = prods.find(p => String(p.id) === String(selectedId));
+        if (!product) {
+          discountPreview.style.display = 'none';
+          discountActiveContainer.style.display = 'none';
+          return;
+        }
+        const originalPrice = Number(product.price ?? 0);
+        const discountedPrice = pct > 0 ? originalPrice * (1 - pct / 100) : originalPrice;
+
+        discountPreview.style.display = 'block';
+        discountOriginalPrice.textContent = `₱${originalPrice.toFixed(2)}`;
+        discountDiscountedPrice.textContent = `₱${Math.max(0, discountedPrice).toFixed(2)}`;
+
+        if (pct > 0) {
+          discountBadge.style.display = 'inline-block';
+          discountBadge.textContent = `-${pct}% off`;
+        } else {
+          discountBadge.style.display = 'none';
+        }
+
+        // Show active discount indicator if product has one
+        const hasDiscount = product.discount && product.discount.percentage > 0;
+        discountActiveContainer.style.display = hasDiscount ? 'block' : 'none';
+      }
+
+      if (discountBtn && discountModal && discountForm) {
+        discountBtn.addEventListener('click', function(){
+          populateDiscountProductSelect(null);
+          discountPercentageInput.value = 0;
+          discountPreview.style.display = 'none';
+          discountActiveContainer.style.display = 'none';
+          discountModal.classList.add('open');
+        });
+
+        discountModal.addEventListener('click', function(e){
+          if (e.target === discountModal || e.target.closest('[data-discount-close]')) {
+            discountModal.classList.remove('open');
+          }
+        });
+
+                discountProductSelect.addEventListener('change', updateDiscountPreview);
+        discountPercentageInput.addEventListener('input', updateDiscountPreview);
+        const discountSuggestions = document.getElementById('discount-search-suggestions');
+
+        function renderDiscountSuggestions() {
+          if (!discountSuggestions) return;
+          const term = (discountSearchInput.value || '').trim().toLowerCase();
+          if (!term) { discountSuggestions.style.display = 'none'; discountSuggestions.innerHTML = ''; return; }
+          const matches = getDiscountProducts().filter(p => p.name.toLowerCase().includes(term)).slice(0, 8);
+          if (!matches.length) {
+            discountSuggestions.innerHTML = '<div style="padding:10px 12px; color:var(--ink-soft); font-size:.85rem;">No products match</div>';
+            discountSuggestions.style.display = 'block';
+            return;
+          }
+          discountSuggestions.innerHTML = matches.map(p =>
+            `<div class="discount-suggestion-item" data-id="${p.id}" style="padding:10px 12px; cursor:pointer; font-size:.9rem; border-bottom:1px solid var(--line);">${p.name}</div>`
+          ).join('');
+          discountSuggestions.style.display = 'block';
+          discountSuggestions.querySelectorAll('.discount-suggestion-item').forEach(item => {
+            item.addEventListener('mouseenter', () => { item.style.background = 'var(--blush-soft)'; });
+            item.addEventListener('mouseleave', () => { item.style.background = ''; });
+            item.addEventListener('click', () => {
+              const id = item.dataset.id;
+              const prod = getDiscountProducts().find(p => String(p.id) === String(id));
+              discountSearchInput.value = prod ? prod.name : '';
+              populateDiscountProductSelect(id);
+              discountProductSelect.value = id;
+              updateDiscountPreview();
+              discountSuggestions.style.display = 'none';
+            });
+          });
+        }
+
+        if (discountSearchInput) {
+          discountSearchInput.addEventListener('input', function(){
+            populateDiscountProductSelect(discountProductSelect.value || null);
+            updateDiscountPreview();
+            renderDiscountSuggestions();
+          });
+          discountSearchInput.addEventListener('focus', renderDiscountSuggestions);
+          document.addEventListener('click', function(e){
+            if (!e.target.closest('#discount-search') && !e.target.closest('#discount-search-suggestions')) {
+              discountSuggestions.style.display = 'none';
+            }
+          });
+        }
+
+        discountRemoveBtn.addEventListener('click', function(){
+          const selectedId = discountProductSelect.value;
+          if (!selectedId) return;
+          const prods = getDiscountProducts();
+          const idx = prods.findIndex(p => String(p.id) === String(selectedId));
+          if (idx === -1) return;
+          delete prods[idx].discount;
+          saveDiscountProducts(prods);
+          updateDiscountPreview();
+          alert('Discount removed from this product.');
+          discountModal.classList.remove('open');
+        });
+
+        discountForm.addEventListener('submit', function(e){
+          e.preventDefault();
+          const selectedId = discountProductSelect.value;
+          const pct = parseInt(discountPercentageInput.value, 10) || 0;
+          if (!selectedId) { alert('Please select a product.'); return; }
+          if (pct <= 0) { alert('Discount must be greater than 0%.'); return; }
+          if (pct > 100) { alert('Discount cannot exceed 100%.'); return; }
+
+          const prods = getDiscountProducts();
+          const idx = prods.findIndex(p => String(p.id) === String(selectedId));
+          if (idx === -1) return;
+
+          const originalPrice = Number(prods[idx].price ?? 0);
+          prods[idx].discount = {
+            percentage: pct,
+            originalPrice: originalPrice,
+            discountedPrice: Math.max(0, originalPrice * (1 - pct / 100))
+          };
+          saveDiscountProducts(prods);
+          alert('Discount applied successfully!');
+          discountModal.classList.remove('open');
+        });
+      }
+    });
+  </script>
+
+<script src="dist/bundle.js"></script>
+</body>
+</html>
