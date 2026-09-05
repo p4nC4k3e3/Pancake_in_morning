@@ -6,118 +6,127 @@
   <title>StudyBuddy</title>
   <script src="/socket.io/socket.io.js"></script>
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      margin: 0;
-      padding: 24px;
-      background-color: #f4f6f9;
-      color: #333;
-    }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-    }
-    .panel {
-      background: #fff;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }
-    h2 {
-      margin-top: 0;
-      border-bottom: 2px solid #eaeaea;
-      padding-bottom: 8px;
-    }
-    #chat-box {
-      height: 250px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      overflow-y: auto;
-      padding: 10px;
-      margin-bottom: 12px;
-      background: #fafafa;
-    }
-    .chat-msg {
-      margin-bottom: 8px;
-    }
-    .chat-msg strong {
-      color: #1976d2;
-    }
-    input, textarea, button {
-      width: 100%;
-      box-sizing: border-box;
-      margin-bottom: 10px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 14px;
-    }
-    button {
-      background-color: #1976d2;
-      color: white;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-    button:hover {
-      background-color: #1565c0;
-    }
-    .card {
-      background: #fdfdfd;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      padding: 14px;
-      margin-bottom: 12px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    }
-    .card-title {
-      font-weight: bold;
-      color: #555;
-      font-size: 12px;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-    .card-options {
-      margin: 10px 0;
-      padding-left: 20px;
-    }
-    .card-answer {
-      color: #2e7d32;
-      font-weight: bold;
-      margin-top: 8px;
-    }
+    :root { --ink: #18332f; --muted: #667773; --paper: #f6f8f3; --surface: #fffefa; --line: #d7e2dc; --teal: #176b68; --teal-dark: #104f4d; --mint: #dcefe6; --coral: #df765c; --coral-soft: #fff0e9; --shadow: 0 18px 45px rgba(28, 68, 57, .09); }
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; color: var(--ink); font-family: Georgia, 'Times New Roman', serif; background: radial-gradient(circle at 8% 0%, #e4f1e9 0, transparent 28%), radial-gradient(circle at 92% 35%, #fff0e8 0, transparent 22%), var(--paper); }
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .app-shell { width: min(1120px, calc(100% - 40px)); margin: 0 auto; padding: 34px 0 70px; }
+    .topbar { display: flex; justify-content: space-between; align-items: end; gap: 36px; margin-bottom: 20px; padding-bottom: 26px; border-bottom: 1px solid var(--line); }
+    .kicker { color: var(--coral); font: 700 12px/1.2 Arial, sans-serif; letter-spacing: .16em; text-transform: uppercase; }
+    h1 { margin: 8px 0 0; font-size: clamp(36px, 5vw, 60px); line-height: .96; letter-spacing: -.04em; }
+    .topbar p { max-width: 410px; margin: 0; color: var(--muted); font: 15px/1.65 Arial, sans-serif; }
+    .workflow { display: flex; align-items: center; gap: 10px; margin: 0 0 18px; color: var(--muted); font: 700 11px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+    .workflow span { display: inline-flex; align-items: center; gap: 8px; }
+    .workflow span::before { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--mint); color: var(--teal); content: attr(data-step); font-size: 10px; }
+    .workflow i { width: 28px; height: 1px; background: var(--line); }
+    .workspace { display: block; }
+    .panel { background: rgba(255,255,255,.86); border: 1px solid var(--line); border-radius: 22px; padding: 32px; box-shadow: var(--shadow); }
+    .generator { width: min(100%, 980px); min-height: 650px; margin: 0 auto; }
+    .panel-head { display: flex; justify-content: space-between; gap: 18px; align-items: start; margin-bottom: 22px; }
+    h2 { margin: 0 0 7px; font-size: 27px; letter-spacing: -.02em; }
+    .panel-head p, .helper { margin: 0; color: var(--muted); font: 14px/1.55 Arial, sans-serif; }
+    .status { display: inline-flex; align-items: center; gap: 7px; color: var(--teal); font: 700 11px Arial, sans-serif; text-transform: uppercase; letter-spacing: .09em; white-space: nowrap; }
+    .status::before { width: 7px; height: 7px; border-radius: 50%; background: #55a777; content: ''; box-shadow: 0 0 0 4px #e2f3e7; }
+    .source-grid { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(280px, .92fr); gap: 18px; margin-bottom: 20px; }
+    .field-label { display: block; color: var(--muted); font: 700 11px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 8px; }
+    textarea, input[type='text'] { width: 100%; border: 1px solid var(--line); border-radius: 12px; padding: 14px; background: var(--surface); color: var(--ink); outline: none; transition: border-color .18s ease, box-shadow .18s ease, background .18s ease; }
+    textarea { min-height: 206px; resize: vertical; line-height: 1.55; }
+    textarea:focus, input[type='text']:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(23,107,104,.11); }
+    .upload-box { min-height: 206px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; padding: 22px; border: 1.5px dashed #a9c4b8; border-radius: 15px; background: #f0f7f1; text-align: center; transition: border-color .18s ease, background .18s ease, box-shadow .18s ease; }
+    .upload-box.drag-over { border-color: var(--teal); background: var(--mint); box-shadow: 0 0 0 4px rgba(23,107,104,.1); }
+    .upload-box strong { font-size: 17px; }
+    .upload-box small { color: var(--muted); font: 12px/1.45 Arial, sans-serif; }
+    .file-button, .secondary { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 10px 16px; border-radius: 9px; border: 1px solid var(--teal); background: transparent; color: var(--teal); font: 700 13px Arial, sans-serif; }
+    .file-button:hover, .secondary:hover { background: var(--mint); }
+    .file-button input { display: none; }
+    .file-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--teal); font: 12px Arial, sans-serif; }
+    .file-list { display: flex; gap: 8px; width: 100%; max-width: 100%; overflow-x: auto; padding: 3px 2px 8px; scrollbar-color: #9dbdb0 transparent; }
+    .file-list:empty { display: none; }
+    .file-chip { flex: 0 0 auto; display: flex; align-items: center; gap: 7px; max-width: 210px; padding: 8px 8px 8px 11px; border: 1px solid #b8d1c4; border-radius: 999px; background: #e5f2ea; color: var(--teal); font: 12px Arial, sans-serif; }
+    .file-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .remove-file { flex: 0 0 auto; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; background: #c5ddd0; color: var(--teal); font: 700 15px/22px Arial, sans-serif; }
+    .remove-file:hover { background: var(--coral); color: white; }
+    .settings { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 20px 0 14px; padding: 17px; border: 1px solid var(--line); border-radius: 14px; background: #f5f8f3; }
+    .settings input { min-height: 43px; }
+    .actions { display: none; gap: 10px; flex-wrap: wrap; }
+    .actions.ready { display: flex; }
+    .primary { flex: 1 1 220px; min-height: 48px; padding: 12px 18px; border: 0; border-radius: 10px; background: var(--teal); color: white; font: 700 14px Arial, sans-serif; transition: transform .18s ease, background .18s ease, box-shadow .18s ease; }
+    .primary:hover { background: var(--teal-dark); box-shadow: 0 8px 18px rgba(16, 79, 77, .16); transform: translateY(-1px); }
+    .primary:disabled { cursor: wait; opacity: .6; }
+    #results { margin-top: 25px; }
+    .review { margin-top: 28px; border-top: 1px solid var(--line); padding-top: 25px; }
+    .review h3 { margin: 0 0 7px; font-size: 24px; }
+    .review p, .review li { font: 15px/1.65 Arial, sans-serif; }
+    .review ul { padding-left: 21px; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin: 12px 0; box-shadow: 0 5px 16px rgba(28, 68, 57, .04); }
+    .card-title { color: var(--coral); font: 700 11px Arial, sans-serif; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 7px; }
+    .card-options { margin: 10px 0; padding-left: 20px; font: 14px/1.5 Arial, sans-serif; }
+    .card-answer { color: var(--teal); font: 700 14px/1.5 Arial, sans-serif; margin-top: 9px; }
+    .flashcard { padding: 18px; }
+    .flashcard-question { margin: 0 0 14px; font: 700 17px/1.45 Arial, sans-serif; }
+    .choice-list { display: grid; gap: 8px; margin: 0 0 13px; }
+    .choice-button { width: 100%; padding: 11px 13px; border: 1px solid #b8d1c4; border-radius: 10px; background: #f7fbf7; color: var(--ink); text-align: left; font: 14px/1.4 Arial, sans-serif; }
+    .choice-button:hover, .choice-button.selected { border-color: var(--teal); background: var(--mint); }
+    .answer-input { width: 100%; margin-bottom: 10px; }
+    .check-answer { min-height: 38px; padding: 9px 14px; border: 0; border-radius: 8px; background: var(--teal); color: #fff; font: 700 13px Arial, sans-serif; }
+    .check-answer:disabled { opacity: .55; cursor: not-allowed; }
+    .check-all { display: block; width: 100%; margin-top: 18px; min-height: 46px; border: 0; border-radius: 10px; background: var(--coral); color: #fff; font: 700 14px Arial, sans-serif; }
+    .check-all:hover { background: #c86249; }
+    .check-all:disabled { opacity: .6; cursor: not-allowed; }
+    .answer-progress { margin-top: 9px; color: var(--muted); text-align: center; font: 12px Arial, sans-serif; }
+    .flashcard-feedback { margin: 12px 0 0; padding: 10px 12px; border-radius: 9px; font: 13px/1.5 Arial, sans-serif; }
+    .flashcard-feedback.correct { background: #e3f4e8; color: #276b46; }
+    .flashcard-feedback.incorrect { background: #fff0e9; color: #a64f38; }
+    .score-panel { margin: 15px 0 20px; padding: 17px; border-radius: 12px; background: var(--mint); text-align: center; }
+    .score-panel strong { display: block; color: var(--teal); font: 700 30px Arial, sans-serif; }
+    .score-panel span { font: 13px Arial, sans-serif; color: var(--ink); }
+    .chat-launcher { position: fixed; right: 25px; bottom: 25px; z-index: 4; display: flex; align-items: center; gap: 9px; padding: 14px 18px; border: 0; border-radius: 999px; background: var(--coral); color: white; box-shadow: 0 10px 25px rgba(120, 58, 40, .25); font: 700 14px Arial, sans-serif; transition: transform .18s ease, box-shadow .18s ease; }
+    .chat-launcher:hover { transform: translateY(-2px); }
+    .chat-drawer { position: fixed; z-index: 5; top: 0; right: 0; display: flex; flex-direction: column; width: min(390px, 100%); height: 100vh; padding: 26px; background: var(--surface); border-left: 1px solid var(--line); box-shadow: -15px 0 38px rgba(31, 56, 49, .14); transform: translateX(105%); transition: transform .25s ease; }
+    .chat-drawer.open { transform: translateX(0); }
+    .chat-header { display: flex; justify-content: space-between; align-items: start; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+    .chat-header h2 { font-size: 24px; }
+    .close-chat { width: 35px; height: 35px; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--ink); font-size: 20px; }
+    #chat-box { flex: 1; overflow-y: auto; padding: 18px 0; }
+    .chat-msg { margin: 0 0 13px; padding: 11px 13px; border-radius: 10px; background: #eef5ef; font: 14px/1.5 Arial, sans-serif; }
+    .chat-msg strong { display: block; margin-bottom: 3px; color: var(--teal); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+    .chat-form { display: grid; gap: 9px; }
+    .chat-form input { min-height: 42px; }
+    @media (max-width: 780px) { .app-shell { width: min(100% - 24px, 600px); padding-top: 22px; } .topbar { display: block; } .topbar p { margin-top: 13px; } .workflow { flex-wrap: wrap; } .workflow i { width: 18px; } .generator { min-height: auto; padding: 21px; } .panel-head { display: block; } .status { margin-top: 13px; } .source-grid, .settings { grid-template-columns: 1fr; } .upload-box, textarea { min-height: 180px; } .chat-launcher { right: 14px; bottom: 14px; } }
   </style>
 </head>
 <body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div><div class="kicker">StudyBuddy / workspace</div><h1>Make your notes<br>work harder.</h1></div>
+      <p>Turn lessons, screenshots, and documents into a clear reviewer you can actually study from.</p>
+    </header>
+    <div class="workflow" aria-label="Study workflow"><span data-step="1">Add material</span><i></i><span data-step="2">Choose a mode</span><i></i><span data-step="3">Study your result</span></div>
 
-  <h1 style="text-align: center; margin-bottom: 24px;">StudyBuddy Dashboard</h1>
+    <section class="workspace">
+      <div class="panel generator">
+        <div class="panel-head"><div><h2>AI reviewer generator</h2><p>Start with pasted notes or upload a study file. You choose what the AI creates.</p></div><span class="status">Ready to study</span></div>
+        <div class="source-grid">
+          <div><label class="field-label" for="lesson-notes">Your notes or instructions</label><textarea id="lesson-notes" placeholder="Paste a lesson, topic, or instructions here..."></textarea></div>
+          <div class="upload-box" id="upload-box"><strong>Bring in files</strong><small>Drop files here or choose one or several PDFs, text files, or images</small><label class="file-button">Choose files<input type="file" id="source-file" accept=".txt,.md,.pdf,.doc,.docx,image/*" multiple></label><div class="file-list" id="file-list" aria-live="polite"></div><span class="file-name" id="file-name">No files selected</span></div>
+        </div>
+        <div class="settings"><div><label class="field-label" for="card-settings">Flashcard settings</label><input id="card-settings" type="text" placeholder="e.g. 8 multiple-choice cards"></div><div><label class="field-label" for="review-title">Reviewer focus</label><input id="review-title" type="text" placeholder="e.g. exam essentials"></div></div>
+        <p class="helper">Your settings are used when you choose the enhanced reviewer option.</p>
+        <div class="actions" id="review-actions"><button class="primary" id="review-only" onclick="createReview('reviewer')">Create reviewer only</button><button class="primary" id="enhance-review" onclick="createReview('enhance')">Enhance + make flashcards</button></div>
+        <div id="results"></div>
+      </div>
+    </section>
+  </main>
 
-  <div class="container">
-    <!-- Live Study Chat -->
-    <div class="panel">
-      <h2>Collaborative Chat</h2>
-      <div id="chat-box"></div>
-      <input type="text" id="username" placeholder="Your name (e.g., Jonvee)" value="Jonvee" />
-      <input type="text" id="chat-input" placeholder="Type a message..." onkeydown="if(event.key === 'Enter') sendMessage()" />
-      <button onclick="sendMessage()">Send</button>
-    </div>
-
-    <!-- Flashcard Generator -->
-    <div class="panel">
-      <h2>AI Flashcard Generator</h2>
-      <textarea id="lesson-notes" rows="6" placeholder="Paste your study notes or instructions here (e.g. 'Generate 4 multiple-choice questions on OOP principles with options A, B, C, D')..."></textarea>
-      <button onclick="generateCards()">Generate Flashcards</button>
-
-      <div id="cards-container" style="margin-top: 15px;"></div>
-    </div>
-  </div>
+  <button class="chat-launcher" id="chat-launcher" onclick="toggleChat()" aria-controls="chat-drawer" aria-expanded="false">✦ ChatBuddy</button>
+  <aside class="chat-drawer" id="chat-drawer" aria-label="ChatBuddy">
+    <div class="chat-header"><div><div class="kicker">Study companion</div><h2>ChatBuddy</h2><p class="helper">Ask a question or say hello.</p></div><button class="close-chat" onclick="toggleChat()" aria-label="Close chat">×</button></div>
+    <div id="chat-box"></div>
+    <div class="chat-form"><input type="text" id="username" placeholder="Your name" value="Jonvee"><input type="text" id="chat-input" placeholder="Message ChatBuddy" onkeydown="if(event.key === 'Enter') sendMessage()"><button class="primary" onclick="sendMessage()">Send message</button></div>
+  </aside>
 
   <script>
-    // Socket.io Connection
     const socket = io();
     const chatBox = document.getElementById('chat-box');
 
@@ -141,59 +150,194 @@
       msgInput.value = '';
     }
 
-    // Flashcard Generator Handler
-    async function generateCards() {
-      const notesInput = document.getElementById('lesson-notes');
-      const container = document.getElementById('cards-container');
-      const notes = notesInput ? notesInput.value : '';
+    let selectedFiles = [];
 
-      if (!notes.trim()) {
-        alert('Please enter some notes or instructions first.');
+    function showReviewChoices() {
+      document.getElementById('review-actions').classList.add('ready');
+    }
+
+    document.getElementById('lesson-notes').addEventListener('input', (event) => {
+      if (event.target.value.trim()) showReviewChoices();
+    });
+
+    const uploadBox = document.getElementById('upload-box');
+
+    document.getElementById('source-file').addEventListener('change', (event) => {
+      addFiles(event.target.files);
+      event.target.value = '';
+    });
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      uploadBox.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        uploadBox.classList.add('drag-over');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      uploadBox.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        uploadBox.classList.remove('drag-over');
+      });
+    });
+
+    uploadBox.addEventListener('drop', (event) => {
+      addFiles(event.dataTransfer.files);
+    });
+
+    function addFiles(fileList) {
+      const newFiles = Array.from(fileList).filter(file => {
+        return !selectedFiles.some(existing => existing.name === file.name && existing.size === file.size && existing.lastModified === file.lastModified);
+      });
+      selectedFiles = [...selectedFiles, ...newFiles];
+      renderFileList();
+      if (selectedFiles.length) showReviewChoices();
+    }
+
+    function renderFileList() {
+      const list = document.getElementById('file-list');
+      document.getElementById('file-name').textContent = selectedFiles.length ? `${selectedFiles.length} file${selectedFiles.length === 1 ? '' : 's'} selected` : 'No files selected';
+      list.innerHTML = selectedFiles.map((file, index) => `<div class="file-chip"><span title="${escapeHtml(file.name)}">${escapeHtml(file.name)}</span><button class="remove-file" type="button" onclick="removeFile(${index})" aria-label="Remove ${escapeHtml(file.name)}">×</button></div>`).join('');
+    }
+
+    function removeFile(index) {
+      selectedFiles.splice(index, 1);
+      renderFileList();
+      if (!selectedFiles.length && !document.getElementById('lesson-notes').value.trim()) {
+        document.getElementById('review-actions').classList.remove('ready');
+      }
+    }
+
+    function toggleChat() {
+      const drawer = document.getElementById('chat-drawer');
+      const isOpen = drawer.classList.toggle('open');
+      document.getElementById('chat-launcher').setAttribute('aria-expanded', String(isOpen));
+    }
+
+    async function createReview(mode) {
+      let notes = document.getElementById('lesson-notes').value.trim();
+      const results = document.getElementById('results');
+      if (!notes && !selectedFiles.length) { results.innerHTML = '<p class="helper">Add notes or choose a file first.</p>'; return; }
+      const buttons = [document.getElementById('review-only'), document.getElementById('enhance-review')];
+      buttons.forEach(button => { button.disabled = true; });
+      results.innerHTML = '<p class="helper">Reading your material and building the reviewer...</p>';
+
+      try {
+        const files = [];
+        for (const selectedFile of selectedFiles) {
+          if (selectedFile.type.startsWith('text/') || /\.(txt|md)$/i.test(selectedFile.name)) {
+            const uploadedText = await selectedFile.text();
+            notes = [notes, uploadedText].filter(Boolean).join('\n\n');
+            document.getElementById('lesson-notes').value = notes;
+          } else {
+            const dataUrl = await readFile(selectedFile);
+            files.push({ mimeType: selectedFile.type || 'application/octet-stream', data: dataUrl.split(',')[1] });
+          }
+        }
+        const res = await fetch('/api/review', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: notes, files, file: files[0] || null, mode, settings: document.getElementById('card-settings').value.trim() }) });
+        const responseText = await res.text();
+        let data;
+        try {
+          data = JSON.parse(responseText);
+        } catch {
+          throw new Error(`The study server returned HTML instead of JSON (HTTP ${res.status}). Restart the server and try again.`);
+        }
+        if (!res.ok || !data.success) throw new Error(data.error || 'Could not create the reviewer.');
+        renderReview(data.review, results, mode);
+      } catch (err) { results.innerHTML = `<p class="helper" style="color:#b44b3a">${escapeHtml(err.message)}</p>`; }
+      finally { buttons.forEach(button => { button.disabled = false; }); }
+    }
+
+    function readFile(file) { return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = reject; reader.readAsDataURL(file); }); }
+
+    function renderReview(review, container, mode) {
+      Object.keys(selectedAnswers).forEach(key => delete selectedAnswers[key]);
+      Object.keys(checkedAnswers).forEach(key => delete checkedAnswers[key]);
+      const points = (review.keyPoints || []).map(point => `<li>${escapeHtml(point)}</li>`).join('');
+      const cards = mode === 'enhance' ? renderFlashcards(review.flashcards || []) : '';
+      container.innerHTML = `<article class="review"><div class="kicker">${mode === 'enhance' ? 'Enhanced reviewer' : 'Reviewer'}</div><h3>${escapeHtml(review.title || 'Your study reviewer')}</h3><p>${escapeHtml(review.summary)}</p><h3>Key points</h3><ul>${points}</ul><h3>Review notes</h3><p>${escapeHtml(review.reviewer)}</p>${cards}</article>`;
+    }
+
+    function renderFlashcards(flashcards) {
+      if (!flashcards.length) return '';
+      const cards = flashcards.map((card, index) => {
+        const options = Array.isArray(card.options) ? card.options : [];
+        const answerControl = options.length
+          ? `<div class="choice-list">${options.map((option, optionIndex) => `<button type="button" class="choice-button" data-card="${index}" data-option="${optionIndex}" onclick="chooseAnswer(${index}, ${optionIndex})">${escapeHtml(option)}</button>`).join('')}</div>`
+          : `<input class="answer-input" id="answer-${index}" type="text" placeholder="Type your answer...">`;
+        return `<div class="card flashcard" data-flashcard="${index}" data-correct-option="${escapeHtml(card.correctOption || '')}"><div class="card-title">Card ${index + 1}</div><p class="flashcard-question">${escapeHtml(card.question)}</p>${answerControl}<div class="flashcard-feedback" id="feedback-${index}" hidden></div><div class="card-answer" id="answer-display-${index}" hidden>Answer: ${escapeHtml(card.answer)}</div></div>`;
+      }).join('');
+      return `<h3>Flashcards</h3><div class="score-panel" id="score-panel" hidden><strong id="score-percent">0%</strong><span id="score-text"></span></div>${cards}<button class="check-all" type="button" onclick="checkAllAnswers()">Check all answers</button><p class="answer-progress" id="answer-progress">Answer every question before checking.</p>`;
+    }
+
+    const selectedAnswers = {};
+    const checkedAnswers = {};
+
+    function chooseAnswer(cardIndex, optionIndex) {
+      if (checkedAnswers[cardIndex]) return;
+      selectedAnswers[cardIndex] = optionIndex;
+      document.querySelectorAll(`[data-card="${cardIndex}"]`).forEach(button => button.classList.remove('selected'));
+      const selected = document.querySelector(`[data-card="${cardIndex}"][data-option="${optionIndex}"]`);
+      if (selected) selected.classList.add('selected');
+    }
+
+    function checkAllAnswers() {
+      const cards = [...document.querySelectorAll('[data-flashcard]')];
+      const unanswered = cards.filter(card => !getSelectedText(card));
+      const progress = document.getElementById('answer-progress');
+      if (unanswered.length) {
+        progress.textContent = `Please answer ${unanswered.length} more question${unanswered.length === 1 ? '' : 's'} before checking.`;
+        progress.style.color = '#a64f38';
+        unanswered[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
 
-      container.innerHTML = '<p>Generating flashcards with Gemini...</p>';
+      cards.forEach((card, index) => gradeAnswer(card, index));
+      updateScore();
+      progress.textContent = 'All answers checked. You can review the answers above.';
+      progress.style.color = 'var(--teal)';
+      document.querySelector('.check-all').disabled = true;
+    }
 
-      try {
-        const res = await fetch('/api/generate-cards', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ notes })
-        });
+    function getSelectedText(card) {
+      const selectedButton = card.querySelector('.choice-button.selected');
+      const answerInput = card.querySelector('.answer-input');
+      return selectedButton ? selectedButton.textContent.trim() : answerInput?.value.trim();
+    }
 
-        const data = await res.json();
+    function gradeAnswer(card, cardIndex) {
+      if (checkedAnswers[cardIndex]) return;
+      const selectedText = getSelectedText(card);
+      const answerInput = card.querySelector('.answer-input');
 
-        if (!res.ok || !data.success || !Array.isArray(data.flashcards) || data.flashcards.length === 0) {
-          container.innerHTML = `<p style="color: red;">Error: ${data.error || 'No cards generated.'}</p>`;
-          return;
-        }
+      const answerText = card.dataset.correctOption || card.querySelector('.card-answer').textContent.replace(/^Answer:\s*/, '').trim();
+      const isCorrect = normalizeAnswer(selectedText) === normalizeAnswer(answerText) || normalizeAnswer(answerText).includes(normalizeAnswer(selectedText));
+      checkedAnswers[cardIndex] = isCorrect;
+      const feedback = document.getElementById(`feedback-${cardIndex}`);
+      feedback.hidden = false;
+      feedback.className = `flashcard-feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+      feedback.textContent = isCorrect ? 'Correct. Nice work.' : 'Not quite. Review the answer, then keep going.';
+      card.querySelector('.card-answer').hidden = false;
+      if (answerInput) answerInput.disabled = true;
+      card.querySelectorAll('.choice-button').forEach(button => { button.disabled = true; });
+    }
 
-        // Render generated cards
-        container.innerHTML = '';
-        data.flashcards.forEach((card, index) => {
-          const cardDiv = document.createElement('div');
-          cardDiv.className = 'card';
+    function normalizeAnswer(value) {
+      return String(value || '').toLowerCase().replace(/^[a-d][).:\s]+/i, '').replace(/[^a-z0-9]+/g, ' ').trim();
+    }
 
-          let optionsHtml = '';
-          if (card.options && card.options.length > 0) {
-            optionsHtml = `<ul class="card-options">` +
-              card.options.map(opt => `<li>${escapeHtml(opt)}</li>`).join('') +
-              `</ul>`;
-          }
-
-          cardDiv.innerHTML = `
-            <div class="card-title">Card ${index + 1}</div>
-            <div><strong>Question:</strong> ${escapeHtml(card.question)}</div>
-            ${optionsHtml}
-            <div class="card-answer">Correct Answer: ${escapeHtml(card.answer)}</div>
-          `;
-          container.appendChild(cardDiv);
-        });
-
-      } catch (err) {
-        console.error('Fetch error:', err);
-        container.innerHTML = `<p style="color: red;">Connection error: ${err.message}</p>`;
-      }
+    function updateScore() {
+      const total = document.querySelectorAll('[data-flashcard]').length;
+      const completed = Object.keys(checkedAnswers).length;
+      if (!total || !completed) return;
+      const correct = Object.values(checkedAnswers).filter(Boolean).length;
+      const percentage = Math.round((correct / total) * 100);
+      const panel = document.getElementById('score-panel');
+      panel.hidden = false;
+      document.getElementById('score-percent').textContent = `${percentage}%`;
+      document.getElementById('score-text').textContent = `${correct} of ${total} answered correctly`;
     }
 
     function escapeHtml(str) {

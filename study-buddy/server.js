@@ -18,7 +18,7 @@ const server = http.createServer(app);
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '20mb' }));
 
 // 1. Serve static assets reliably from the project directory
 app.use(express.static(__dirname));
@@ -93,7 +93,7 @@ ${notes}`;
   };
 
   // Fallback models in case the primary hits a 503 high-demand spike
-  const modelsToTry = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-2.0-flash'];
+  const modelsToTry = ['gemini-3.6-flash', 'gemini-3.1-flash-lite'];
   let lastError = null;
 
   for (const model of modelsToTry) {
@@ -124,6 +124,80 @@ ${notes}`;
   return res.status(503).json({ 
     error: lastError?.message || 'Gemini service is experiencing high demand. Please try again shortly.' 
   });
+});
+
+// Review uploaded or pasted study material.
+app.post('/api/review', async (req, res) => {
+  const { text = '', files = [], file, mode = 'reviewer', settings = '' } = req.body;
+  const attachments = Array.isArray(files) ? files : (file ? [file] : []);
+  const validAttachments = attachments.filter(attachment => attachment?.data && attachment?.mimeType);
+
+  if (!text.trim() && validAttachments.length === 0) {
+    return res.status(400).json({ error: 'Please upload a file or enter some study material.' });
+  }
+
+  const wantsCards = mode === 'enhance';
+  const prompt = `You are a helpful study tutor. Analyze the user's study material.
+Create a clear reviewer with a concise summary, important concepts, and useful explanations.
+${wantsCards ? `Also create flashcards based on the user's requested settings. Preserve these settings exactly when they are provided: ${settings || 'Use a sensible default of 4 to 6 question-and-answer cards.'} For multiple-choice cards, put the exact correct option text in correctOption.` : 'Do not create flashcards in this response.'}
+Return valid JSON only.
+
+Study material:
+${text || '(The study material is attached as a file or image.)'}`;
+
+  const content = [{ text: prompt }];
+  validAttachments.forEach(attachment => {
+    content.push({ inlineData: { mimeType: attachment.mimeType, data: attachment.data } });
+  });
+
+  const config = {
+    responseMimeType: 'application/json',
+    responseSchema: {
+      type: 'OBJECT',
+      properties: {
+        title: { type: 'STRING' },
+        summary: { type: 'STRING' },
+        keyPoints: { type: 'ARRAY', items: { type: 'STRING' } },
+        reviewer: { type: 'STRING' },
+        flashcards: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: {
+              question: { type: 'STRING' },
+              options: { type: 'ARRAY', items: { type: 'STRING' } },
+              answer: { type: 'STRING' },
+              correctOption: { type: 'STRING', description: 'Exact correct option text for multiple-choice cards.' }
+            },
+            required: ['question', 'answer']
+          }
+        }
+      },
+      required: ['title', 'summary', 'keyPoints', 'reviewer', 'flashcards']
+    },
+    maxOutputTokens: 5000,
+    temperature: 0.3
+  };
+
+  const modelsToTry = ['gemini-3.6-flash', 'gemini-3.1-flash-lite'];
+  let lastError = null;
+
+  for (const model of modelsToTry) {
+    try {
+      const response = await ai.models.generateContent({ model, contents: content, config });
+      let rawText = response.text || '{}';
+      rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+      return res.json({ success: true, review: JSON.parse(rawText) });
+    } catch (err) {
+      lastError = err;
+      const is503 = err.message?.includes('503') || err.status === 503;
+      if (is503) continue;
+      console.error('--- REVIEW GENERATION ERROR ---', err);
+      return res.status(500).json({ error: err.message || 'Failed to create the reviewer.' });
+    }
+  }
+
+  return res.status(503).json({ error: lastError?.message || 'Gemini is busy. Please try again shortly.' });
 });
 
 // Start server listener explicitly bound to 0.0.0.0
