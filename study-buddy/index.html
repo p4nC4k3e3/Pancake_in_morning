@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>StudyBuddy</title>
   <script src="/socket.io/socket.io.js"></script>
-  <style>
-    :root { --ink: #18332f; --muted: #667773; --paper: #f6f8f3; --surface: #fffefa; --line: #d7e2dc; --teal: #176b68; --teal-dark: #104f4d; --mint: #dcefe6; --coral: #df765c; --coral-soft: #fff0e9; --shadow: 0 18px 45px rgba(28, 68, 57, .09); }
+  <link rel="stylesheet" href="/design/style.css" />
+  <style media="not all">
+    :root { --ink: #1A2E2B; --muted: #5E736E; --paper: #F7FAF7; --surface: #FFFFFF; --line: #DCE5DF; --teal: #175E54; --teal-dark: #0F433C; --mint: #E4F1EB; --coral: #D96B50; --coral-soft: #FFF0EA; --shadow: 0 18px 45px rgba(23, 67, 57, .09); }
     * { box-sizing: border-box; }
-    body { min-height: 100vh; margin: 0; color: var(--ink); font-family: Georgia, 'Times New Roman', serif; background: radial-gradient(circle at 8% 0%, #e4f1e9 0, transparent 28%), radial-gradient(circle at 92% 35%, #fff0e8 0, transparent 22%), var(--paper); }
+    body { min-height: 100vh; margin: 0; color: var(--ink); font-family: Georgia, 'Times New Roman', serif; background: radial-gradient(circle at 8% 0%, #EAF4EE 0, transparent 28%), radial-gradient(circle at 92% 35%, #FFF1EA 0, transparent 22%), linear-gradient(135deg, #F9FBF8 0%, #F4F7F4 100%); }
     button, input, textarea { font: inherit; }
     button { cursor: pointer; }
     .app-shell { width: min(1120px, calc(100% - 40px)); margin: 0 auto; padding: 34px 0 70px; }
@@ -21,7 +22,7 @@
     .workflow span::before { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--mint); color: var(--teal); content: attr(data-step); font-size: 10px; }
     .workflow i { width: 28px; height: 1px; background: var(--line); }
     .workspace { display: block; }
-    .panel { background: rgba(255,255,255,.86); border: 1px solid var(--line); border-radius: 22px; padding: 32px; box-shadow: var(--shadow); }
+    .panel { background: rgba(255,255,255,.92); border: 1px solid var(--line); border-radius: 22px; padding: 32px; box-shadow: var(--shadow); }
     .generator { width: min(100%, 980px); min-height: 650px; margin: 0 auto; }
     .panel-head { display: flex; justify-content: space-between; gap: 18px; align-items: start; margin-bottom: 22px; }
     h2 { margin: 0 0 7px; font-size: 27px; letter-spacing: -.02em; }
@@ -81,22 +82,59 @@
     .score-panel { margin: 15px 0 20px; padding: 17px; border-radius: 12px; background: var(--mint); text-align: center; }
     .score-panel strong { display: block; color: var(--teal); font: 700 30px Arial, sans-serif; }
     .score-panel span { font: 13px Arial, sans-serif; color: var(--ink); }
-    .chat-launcher { position: fixed; right: 25px; bottom: 25px; z-index: 4; display: flex; align-items: center; gap: 9px; padding: 14px 18px; border: 0; border-radius: 999px; background: var(--coral); color: white; box-shadow: 0 10px 25px rgba(120, 58, 40, .25); font: 700 14px Arial, sans-serif; transition: transform .18s ease, box-shadow .18s ease; }
-    .chat-launcher:hover { transform: translateY(-2px); }
-    .chat-drawer { position: fixed; z-index: 5; top: 0; right: 0; display: flex; flex-direction: column; width: min(390px, 100%); height: 100vh; padding: 26px; background: var(--surface); border-left: 1px solid var(--line); box-shadow: -15px 0 38px rgba(31, 56, 49, .14); transform: translateX(105%); transition: transform .25s ease; }
+    .chat-launcher { position: fixed; right: 25px; bottom: 25px; z-index: 4; display: flex; align-items: center; gap: 9px; padding: 14px 18px; border: 1px solid rgba(255,255,255,.3); border-radius: 999px; background: var(--coral); color: white; box-shadow: 0 10px 25px rgba(120, 58, 40, .25), 0 0 0 0 rgba(217,107,80,.35); backdrop-filter: blur(10px); font: 700 14px Arial, sans-serif; animation: chat-pulse 3s ease-out infinite; transition: transform .18s ease, box-shadow .18s ease; }
+    .chat-launcher:hover { animation: none; transform: translateY(-2px); box-shadow: 0 14px 30px rgba(120, 58, 40, .3); }
+    @keyframes chat-pulse { 0%, 70%, 100% { box-shadow: 0 10px 25px rgba(120, 58, 40, .25), 0 0 0 0 rgba(217,107,80,.28); } 85% { box-shadow: 0 10px 25px rgba(120, 58, 40, .25), 0 0 0 9px rgba(217,107,80,0); } }
+    .chat-drawer { position: fixed; z-index: 5; top: 14px; right: 14px; display: flex; flex-direction: column; width: min(380px, calc(100% - 28px)); height: calc(100vh - 28px); padding: 26px; background: rgba(255,255,255,.96); border: 1px solid var(--line); border-radius: 20px; box-shadow: -15px 0 38px rgba(31, 56, 49, .14); transform: translateX(calc(100% + 30px)); transition: transform .25s ease; }
     .chat-drawer.open { transform: translateX(0); }
     .chat-header { display: flex; justify-content: space-between; align-items: start; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
     .chat-header h2 { font-size: 24px; }
+    .presence { display: inline-flex; align-items: center; gap: 6px; margin-top: 5px; color: var(--muted); font: 700 11px Arial, sans-serif; letter-spacing: .06em; text-transform: uppercase; }
+    .presence::before { color: #4D9A6A; content: '●'; font-size: 14px; }
     .close-chat { width: 35px; height: 35px; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--ink); font-size: 20px; }
-    #chat-box { flex: 1; overflow-y: auto; padding: 18px 0; }
-    .chat-msg { margin: 0 0 13px; padding: 11px 13px; border-radius: 10px; background: #eef5ef; font: 14px/1.5 Arial, sans-serif; }
+    #chat-box { flex: 1; overflow-y: auto; padding: 18px 4px 18px 0; scrollbar-color: #B8CEC4 transparent; }
+    .chat-msg { width: 88%; margin: 0 0 13px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 15px 15px 15px 4px; background: #F0F6F2; font: 14px/1.5 Arial, sans-serif; }
+    .chat-msg.user-message { margin-left: auto; border-color: #EFC4B7; border-radius: 15px 15px 4px 15px; background: var(--coral-soft); }
     .chat-msg strong { display: block; margin-bottom: 3px; color: var(--teal); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
-    .chat-form { display: grid; gap: 9px; }
-    .chat-form input { min-height: 42px; }
-    @media (max-width: 780px) { .app-shell { width: min(100% - 24px, 600px); padding-top: 22px; } .topbar { display: block; } .topbar p { margin-top: 13px; } .workflow { flex-wrap: wrap; } .workflow i { width: 18px; } .generator { min-height: auto; padding: 21px; } .panel-head { display: block; } .status { margin-top: 13px; } .source-grid, .settings { grid-template-columns: 1fr; } .upload-box, textarea { min-height: 180px; } .chat-launcher { right: 14px; bottom: 14px; } }
+    .chat-msg.user-message strong { color: #A94E3A; }
+    .chat-form { display: grid; grid-template-columns: 1fr auto; gap: 9px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .chat-form input:first-child { grid-column: 1 / -1; min-height: 38px; }
+    .chat-form input:nth-child(2) { min-height: 44px; }
+    .chat-form .primary { min-width: 78px; padding: 10px 14px; }
+    .showcase { width: min(100%, 980px); margin: 72px auto 0; }
+    .showcase-intro { max-width: 620px; margin-bottom: 24px; }
+    .showcase-intro h2 { margin-bottom: 8px; }
+    .showcase-intro p, .feature-card p, .architecture p, .site-footer p, .site-footer li { color: var(--muted); font: 14px/1.65 Arial, sans-serif; }
+    .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .feature-card { min-height: 190px; padding: 21px; border: 1px solid var(--line); border-radius: 15px; background: rgba(255,255,255,.78); }
+    .feature-icon { display: grid; place-items: center; width: 34px; height: 34px; margin-bottom: 18px; border-radius: 10px; background: var(--mint); color: var(--teal); font: 700 13px Arial, sans-serif; }
+    .feature-card h3 { margin: 0 0 7px; font-size: 19px; }
+    .feature-card p { margin: 0; }
+    .architecture { display: flex; justify-content: space-between; gap: 24px; align-items: center; margin-top: 14px; padding: 22px 24px; border: 1px solid #BFD8CC; border-radius: 15px; background: var(--teal-dark); color: #F5FBF7; }
+    .architecture h3 { margin: 0 0 5px; font-size: 20px; }
+    .architecture p { margin: 0; color: #CBE1D8; }
+    .stack-list { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; margin: 0; padding: 0; list-style: none; }
+    .stack-list li { padding: 7px 10px; border: 1px solid rgba(255,255,255,.2); border-radius: 999px; color: #F5FBF7; font: 700 11px Arial, sans-serif; }
+    .site-footer { width: min(100%, 980px); display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 28px; margin: 25px auto 0; padding: 28px 0 4px; border-top: 1px solid var(--line); }
+    .site-footer h3 { margin: 0 0 8px; font-size: 17px; }
+    .site-footer p { margin: 0; }
+    .site-footer ul { margin: 0; padding: 0; list-style: none; }
+    .site-footer li { margin-bottom: 5px; }
+    .site-footer a { color: var(--teal); text-decoration: none; }
+    .site-footer a:hover { color: var(--coral); text-decoration: underline; }
+    .footer-tag { display: inline-block; margin-top: 13px; padding: 6px 9px; border-radius: 999px; background: var(--mint); color: var(--teal); font: 700 10px Arial, sans-serif; letter-spacing: .06em; text-transform: uppercase; }
+    @media (max-width: 780px) { .app-shell { width: min(100% - 24px, 600px); padding-top: 22px; } .topbar { display: block; } .topbar p { margin-top: 13px; } .workflow { flex-wrap: wrap; } .workflow i { width: 18px; } .generator { min-height: auto; padding: 21px; } .panel-head { display: block; } .status { margin-top: 13px; } .source-grid, .settings { grid-template-columns: 1fr; } .upload-box, textarea { min-height: 180px; } .chat-launcher { right: 14px; bottom: 14px; } .feature-grid, .site-footer { grid-template-columns: 1fr; } .architecture { display: block; } .stack-list { justify-content: flex-start; margin-top: 16px; } }
   </style>
 </head>
 <body>
+  <div id="api-notice" class="api-notice" hidden>
+    <div class="api-notice-header">
+      <h3 class="api-notice-title">StudyBuddy is temporarily paused</h3>
+      <button type="button" class="api-notice-close" aria-label="Close notification">×</button>
+    </div>
+    <p class="api-notice-body"><strong>What happened:</strong> the AI has reached its free usage limit for now. <strong>What to do:</strong> wait a few minutes and try again, or upgrade your plan if you want instant access again.</p>
+  </div>
+
   <main class="app-shell">
     <header class="topbar">
       <div><div class="kicker">StudyBuddy / workspace</div><h1>Make your notes<br>work harder.</h1></div>
@@ -109,7 +147,7 @@
         <div class="panel-head"><div><h2>AI reviewer generator</h2><p>Start with pasted notes or upload a study file. You choose what the AI creates.</p></div><span class="status">Ready to study</span></div>
         <div class="source-grid">
           <div><label class="field-label" for="lesson-notes">Your notes or instructions</label><textarea id="lesson-notes" placeholder="Paste a lesson, topic, or instructions here..."></textarea></div>
-          <div class="upload-box" id="upload-box"><strong>Bring in files</strong><small>Drop files here or choose one or several PDFs, text files, or images</small><label class="file-button">Choose files<input type="file" id="source-file" accept=".txt,.md,.pdf,.doc,.docx,image/*" multiple></label><div class="file-list" id="file-list" aria-live="polite"></div><span class="file-name" id="file-name">No files selected</span></div>
+          <div class="upload-box" id="upload-box"><strong>Bring in files</strong><small>Drop files here or add one or several PDFs, text files, or images</small><label class="file-button" title="Add files" aria-label="Add files">+<input type="file" id="source-file" accept=".txt,.md,.pdf,.doc,.docx,image/*" multiple></label><div class="file-list" id="file-list" aria-live="polite"></div><span class="file-name" id="file-name">No files selected</span></div>
         </div>
         <div class="settings"><div><label class="field-label" for="card-settings">Flashcard settings</label><input id="card-settings" type="text" placeholder="e.g. 8 multiple-choice cards"></div><div><label class="field-label" for="review-title">Reviewer focus</label><input id="review-title" type="text" placeholder="e.g. exam essentials"></div></div>
         <p class="helper">Your settings are used when you choose the enhanced reviewer option.</p>
@@ -117,36 +155,133 @@
         <div id="results"></div>
       </div>
     </section>
+
+    <section class="showcase" id="about-studybuddy" aria-labelledby="how-title">
+      <div class="showcase-intro">
+        <div class="kicker">A calmer study loop</div>
+        <h2 id="how-title">How StudyBuddy works</h2>
+        <p>Move from scattered source material to focused understanding, then test what you remember while it is still fresh.</p>
+      </div>
+      <div class="feature-grid">
+        <article class="feature-card">
+          <div class="feature-icon" aria-hidden="true">01</div>
+          <h3>Smart ingestion</h3>
+          <p>Paste raw text, lecture slides, or drag-and-drop PDFs and images into one study workspace.</p>
+        </article>
+        <article class="feature-card">
+          <div class="feature-icon" aria-hidden="true">02</div>
+          <h3>Targeted reviewers</h3>
+          <p>Get an executive summary, key definitions, relationships, and exam-focused review points.</p>
+        </article>
+        <article class="feature-card">
+          <div class="feature-icon" aria-hidden="true">03</div>
+          <h3>Interactive self-testing</h3>
+          <p>Use dynamic Q&amp;A, active-recall quizzes, and instant grading to see what you truly know.</p>
+        </article>
+      </div>
+      <div class="architecture" id="architecture">
+        <div>
+          <h3>Built for a practical study workflow</h3>
+          <p>Reliable web primitives keep the experience quick, collaborative, and easy to extend.</p>
+        </div>
+        <ul class="stack-list" aria-label="Technology stack">
+          <li>Node.js</li><li>Express</li><li>Socket.IO</li><li>Google Gemini API</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="contact-section" id="contact-studybuddy" aria-labelledby="contact-title">
+      <div class="contact-copy">
+        <div class="kicker">Need a hand?</div>
+        <h2 id="contact-title">Contact Information</h2>
+        <p>For questions, support, or follow-ups, you can reach us directly through the details below.</p>
+        <div class="contact-services">
+          <a class="contact-service" href="https://mail.google.com/mail/?view=cm&fs=1&to=santosjonvee2@gmail.com" target="_blank" rel="noopener noreferrer"><strong>Email</strong><span>santosjonvee2@gmail.com</span></a>
+          <a class="contact-service" href="tel:+639635228005"><strong>Cellphone</strong><span>+63 963 522 8005</span></a>
+          <a class="contact-service" href="https://www.facebook.com/profile.php?id=61594142339227" target="_blank" rel="noopener noreferrer"><strong>Facebook</strong><span>facebook.com/profile.php?id=61594142339227</span></a>
+        </div>
+      </div>
+      <div class="contact-form" id="contact-form">
+        <label class="field-label" for="contact-message">Quick support</label>
+        <p class="contact-status" style="margin: 0; color: var(--muted);">Need a quick answer? ChatBuddy can help with your notes, flashcards, and review flow.</p>
+        <button class="primary" type="button" onclick="openSupportChat('I need help using StudyBuddy.')">Open in ChatBuddy</button>
+      </div>
+    </section>
+
+    <footer class="site-footer" id="project-footer">
+      <div>
+        <div class="kicker">StudyBuddy</div>
+        <h3>Study with more intention.</h3>
+        <p>An academic study architecture project for turning learning materials into useful practice.</p>
+        <span class="footer-tag">BS Information Technology project</span>
+      </div>
+      <div>
+        <h3>Project</h3>
+        <ul><li><a href="#about-studybuddy">How it works</a></li><li><a href="#architecture">Architecture</a></li><li><a href="#project-footer">Attribution</a></li></ul>
+      </div>
+      <div>
+        <h3>Contact &amp; links</h3>
+        <ul><li><a href="https://mail.google.com/mail/?view=cm&fs=1&to=santosjonvee2@gmail.com" target="_blank" rel="noopener noreferrer">santosjonvee2@gmail.com</a></li><li><a href="tel:+639635228005">+63 963 522 8005</a></li><li><a href="https://www.facebook.com/profile.php?id=61594142339227" target="_blank" rel="noopener noreferrer">facebook.com/profile.php?id=61594142339227</a></li></ul>
+      </div>
+    </footer>
   </main>
 
   <button class="chat-launcher" id="chat-launcher" onclick="toggleChat()" aria-controls="chat-drawer" aria-expanded="false">✦ ChatBuddy</button>
   <aside class="chat-drawer" id="chat-drawer" aria-label="ChatBuddy">
-    <div class="chat-header"><div><div class="kicker">Study companion</div><h2>ChatBuddy</h2><p class="helper">Ask a question or say hello.</p></div><button class="close-chat" onclick="toggleChat()" aria-label="Close chat">×</button></div>
+    <div class="chat-header"><div><h2>ChatBuddy</h2><span class="presence">Active</span></div><button class="close-chat" onclick="toggleChat()" aria-label="Close chat">×</button></div>
     <div id="chat-box"></div>
-    <div class="chat-form"><input type="text" id="username" placeholder="Your name" value="Jonvee"><input type="text" id="chat-input" placeholder="Message ChatBuddy" onkeydown="if(event.key === 'Enter') sendMessage()"><button class="primary" onclick="sendMessage()">Send message</button></div>
+    <button class="suggestion-toggle" type="button" onclick="toggleSuggestions()" aria-expanded="false" aria-controls="chat-suggestions">✦ Suggest something to ask</button>
+    <div class="chat-suggestions" id="chat-suggestions" hidden>
+      <button type="button" onclick="useSuggestion(this)">How should I use StudyBuddy?</button>
+      <button type="button" onclick="useSuggestion(this)">How can I study this lesson better?</button>
+      <button type="button" onclick="useSuggestion(this)">Explain active recall to me.</button>
+    </div>
+    <div class="chat-form"><input type="text" id="username" placeholder="Name (optional)"><input type="text" id="chat-input" placeholder="Message ChatBuddy" onkeydown="if(event.key === 'Enter') sendMessage()"><button class="primary" onclick="sendMessage()">Send message</button></div>
   </aside>
 
-  <script>
+  <script type="text/plain">
     const socket = io();
     const chatBox = document.getElementById('chat-box');
+    localStorage.removeItem('studybuddy-chat-history');
+    const savedChatName = localStorage.getItem('studybuddy-chat-name') || '';
+    document.getElementById('username').value = savedChatName;
+    let chatHistory = [];
 
-    socket.on('receive_message', (data) => {
+    function saveChatMessage(data) {
+      chatHistory = [...chatHistory, { sender: data.sender, message: data.message }].slice(-30);
+    }
+
+    function renderChatMessage(data) {
       const msgDiv = document.createElement('div');
-      msgDiv.className = 'chat-msg';
+      const isUserMessage = data.sender !== 'ChatBuddy AI';
+      msgDiv.className = `chat-msg${isUserMessage ? ' user-message' : ''}`;
       msgDiv.innerHTML = `<strong>${escapeHtml(data.sender)}:</strong> ${escapeHtml(data.message)}`;
       chatBox.appendChild(msgDiv);
       chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    socket.on('connect', () => {
+      socket.emit('chat_context', {
+        name: document.getElementById('username').value.trim(),
+        conversation: chatHistory.slice(-12)
+      });
+    });
+
+    socket.on('receive_message', (data) => {
+      renderChatMessage(data);
+      saveChatMessage(data);
     });
 
     function sendMessage() {
       const nameInput = document.getElementById('username');
       const msgInput = document.getElementById('chat-input');
-      const sender = nameInput.value.trim() || 'Anonymous';
+      const sender = nameInput.value.trim() || 'Student';
       const message = msgInput.value.trim();
 
       if (!message) return;
 
       socket.emit('send_message', { sender, message });
+      localStorage.setItem('studybuddy-chat-name', sender === 'Student' ? '' : sender);
       msgInput.value = '';
     }
 
@@ -349,5 +484,6 @@
         .replace(/"/g, '&quot;');
     }
   </script>
+  <script src="/design/app.js"></script>
 </body>
 </html>

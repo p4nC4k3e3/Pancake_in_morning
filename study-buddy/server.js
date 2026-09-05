@@ -31,6 +31,45 @@ app.get('/', (req, res) => {
 // Initialize Gemini Client
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
+async function generateChatSupportReply(message, studentName, conversation) {
+  const conversationText = conversation
+    .map(item => `${item.sender}: ${item.message}`)
+    .join('\n');
+  const prompt = `You are ChatBuddy, the friendly AI support assistant inside StudyBuddy.
+Help the student with study questions and explain how to use the system.
+The system can create reviewers, generate interactive flashcards, accept pasted notes, and process uploaded files or images.
+Reply naturally and briefly. If the user greets you, greet them back. If they ask how to use the app, give clear practical steps.
+Do not claim to have accessed a file or generated a reviewer unless the user has actually used those features.
+Address the student by name when it feels natural. Their name is: ${studentName || 'Student'}.
+
+Recent conversation:
+${conversationText || '(No previous conversation.)'}
+
+Student message:
+${message}`;
+
+  const modelsToTry = ['gemini-3.6-flash', 'gemini-3.1-flash-lite'];
+  let lastError = null;
+
+  for (const model of modelsToTry) {
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents: prompt,
+        config: { maxOutputTokens: 500, temperature: 0.7 }
+      });
+      return response.text?.trim() || 'I am here to help with your study materials.';
+    } catch (err) {
+      lastError = err;
+      const messageText = String(err?.message || err).toLowerCase();
+      const isTemporary = err?.status === 429 || err?.status === 503 || messageText.includes('quota exceeded') || messageText.includes('resource_exhausted') || messageText.includes('503');
+      if (!isTemporary) break;
+    }
+  }
+
+  throw lastError || new Error('ChatBuddy is currently unavailable.');
+}
+
 // Real-time Chat via Socket.io
 const io = new Server(server, {
   cors: { origin: '*' }
@@ -38,9 +77,48 @@ const io = new Server(server, {
 
 io.on('connection', (socket) => {
   console.log(`Student connected: ${socket.id}`);
+  let studentName = 'Student';
+  let conversation = [];
 
-  socket.on('send_message', (data) => {
+  socket.on('chat_context', (data) => {
+    if (typeof data?.name === 'string' && data.name.trim()) {
+      studentName = data.name.trim().slice(0, 60);
+    }
+    if (Array.isArray(data?.conversation)) {
+      conversation = data.conversation
+        .filter(item => item && typeof item.message === 'string')
+        .slice(-12)
+        .map(item => ({
+          sender: typeof item.sender === 'string' ? item.sender.slice(0, 60) : studentName,
+          message: item.message.trim().slice(0, 1000)
+        }));
+    }
+  });
+
+  socket.on('send_message', async (data) => {
     io.emit('receive_message', data);
+
+    const message = typeof data?.message === 'string' ? data.message.trim() : '';
+    if (!message) return;
+    studentName = typeof data?.sender === 'string' && data.sender.trim() ? data.sender.trim().slice(0, 60) : studentName;
+    conversation.push({ sender: studentName, message });
+    conversation = conversation.slice(-12);
+
+    try {
+      const reply = await generateChatSupportReply(message, studentName, conversation);
+      conversation.push({ sender: 'ChatBuddy AI', message: reply });
+      conversation = conversation.slice(-12);
+      socket.emit('receive_message', {
+        sender: 'ChatBuddy AI',
+        message: reply
+      });
+    } catch (err) {
+      console.error('--- CHATBUDDY ERROR ---', err);
+      socket.emit('receive_message', {
+        sender: 'ChatBuddy AI',
+        message: 'I am temporarily unavailable. You can still use the reviewer and flashcard tools below.'
+      });
+    }
   });
 
   socket.on('disconnect', () => {
