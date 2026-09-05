@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudyBuddy</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 24px;
+      background-color: #f4f6f9;
+      color: #333;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .panel {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    h2 {
+      margin-top: 0;
+      border-bottom: 2px solid #eaeaea;
+      padding-bottom: 8px;
+    }
+    #chat-box {
+      height: 250px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      overflow-y: auto;
+      padding: 10px;
+      margin-bottom: 12px;
+      background: #fafafa;
+    }
+    .chat-msg {
+      margin-bottom: 8px;
+    }
+    .chat-msg strong {
+      color: #1976d2;
+    }
+    input, textarea, button {
+      width: 100%;
+      box-sizing: border-box;
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    button {
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #1565c0;
+    }
+    .card {
+      background: #fdfdfd;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .card-title {
+      font-weight: bold;
+      color: #555;
+      font-size: 12px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .card-options {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+    .card-answer {
+      color: #2e7d32;
+      font-weight: bold;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1 style="text-align: center; margin-bottom: 24px;">StudyBuddy Dashboard</h1>
+
+  <div class="container">
+    <!-- Live Study Chat -->
+    <div class="panel">
+      <h2>Collaborative Chat</h2>
+      <div id="chat-box"></div>
+      <input type="text" id="username" placeholder="Your name (e.g., Jonvee)" value="Jonvee" />
+      <input type="text" id="chat-input" placeholder="Type a message..." onkeydown="if(event.key === 'Enter') sendMessage()" />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <!-- Flashcard Generator -->
+    <div class="panel">
+      <h2>AI Flashcard Generator</h2>
+      <textarea id="lesson-notes" rows="6" placeholder="Paste your study notes or instructions here (e.g. 'Generate 4 multiple-choice questions on OOP principles with options A, B, C, D')..."></textarea>
+      <button onclick="generateCards()">Generate Flashcards</button>
+
+      <div id="cards-container" style="margin-top: 15px;"></div>
+    </div>
+  </div>
+
+  <script>
+    // Socket.io Connection
+    const socket = io();
+    const chatBox = document.getElementById('chat-box');
+
+    socket.on('receive_message', (data) => {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'chat-msg';
+      msgDiv.innerHTML = `<strong>${escapeHtml(data.sender)}:</strong> ${escapeHtml(data.message)}`;
+      chatBox.appendChild(msgDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    });
+
+    function sendMessage() {
+      const nameInput = document.getElementById('username');
+      const msgInput = document.getElementById('chat-input');
+      const sender = nameInput.value.trim() || 'Anonymous';
+      const message = msgInput.value.trim();
+
+      if (!message) return;
+
+      socket.emit('send_message', { sender, message });
+      msgInput.value = '';
+    }
+
+    // Flashcard Generator Handler
+    async function generateCards() {
+      const notesInput = document.getElementById('lesson-notes');
+      const container = document.getElementById('cards-container');
+      const notes = notesInput ? notesInput.value : '';
+
+      if (!notes.trim()) {
+        alert('Please enter some notes or instructions first.');
+        return;
+      }
+
+      container.innerHTML = '<p>Generating flashcards with Gemini...</p>';
+
+      try {
+        const res = await fetch('/api/generate-cards', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notes })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.success || !Array.isArray(data.flashcards) || data.flashcards.length === 0) {
+          container.innerHTML = `<p style="color: red;">Error: ${data.error || 'No cards generated.'}</p>`;
+          return;
+        }
+
+        // Render generated cards
+        container.innerHTML = '';
+        data.flashcards.forEach((card, index) => {
+          const cardDiv = document.createElement('div');
+          cardDiv.className = 'card';
+
+          let optionsHtml = '';
+          if (card.options && card.options.length > 0) {
+            optionsHtml = `<ul class="card-options">` +
+              card.options.map(opt => `<li>${escapeHtml(opt)}</li>`).join('') +
+              `</ul>`;
+          }
+
+          cardDiv.innerHTML = `
+            <div class="card-title">Card ${index + 1}</div>
+            <div><strong>Question:</strong> ${escapeHtml(card.question)}</div>
+            ${optionsHtml}
+            <div class="card-answer">Correct Answer: ${escapeHtml(card.answer)}</div>
+          `;
+          container.appendChild(cardDiv);
+        });
+
+      } catch (err) {
+        console.error('Fetch error:', err);
+        container.innerHTML = `<p style="color: red;">Connection error: ${err.message}</p>`;
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>
