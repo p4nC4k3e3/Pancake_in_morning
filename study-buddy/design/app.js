@@ -28,9 +28,14 @@ function initializeScrollReveals() {
 
   const revealObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-      entry.target.classList.toggle('is-visible', entry.isIntersecting);
+      const target = entry.target;
+      const rect = target.getBoundingClientRect();
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+      const stillVisible = rect.bottom > 0 && rect.top < viewportHeight * 0.94;
+
+      target.classList.toggle('is-visible', entry.isIntersecting || stillVisible);
     });
-  }, { threshold: 0.14, rootMargin: '0px 0px -8% 0px' });
+  }, { threshold: [0, 0.08, 0.14, 0.2], rootMargin: '0px 0px -10% 0px' });
 
   revealTargets.forEach(element => revealObserver.observe(element));
 }
