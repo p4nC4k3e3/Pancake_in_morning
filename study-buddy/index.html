@@ -361,9 +361,11 @@
 
     function toggleChat() {
       const drawer = document.getElementById('chat-drawer');
+      const launcher = document.getElementById('chat-launcher');
       const isOpen = drawer.classList.toggle('open');
       document.querySelector('.auth-actions').classList.toggle('chat-open', isOpen);
-      document.getElementById('chat-launcher').setAttribute('aria-expanded', String(isOpen));
+      launcher.classList.toggle('is-open', isOpen);
+      launcher.setAttribute('aria-expanded', String(isOpen));
     }
 
     function prepareReview(mode) {
