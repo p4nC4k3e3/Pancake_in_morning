@@ -6,6 +6,7 @@
   <title>StudyBuddy</title>
   <script src="/socket.io/socket.io.js"></script>
   <link rel="stylesheet" href="/design/style.css" />
+  <link rel="icon" type="image/png" href="/design/logo/logo.png" />
   <style media="not all">
     :root { --ink: #1A2E2B; --muted: #5E736E; --paper: #F7FAF7; --surface: #FFFFFF; --line: #DCE5DF; --teal: #175E54; --teal-dark: #0F433C; --mint: #E4F1EB; --coral: #D96B50; --coral-soft: #FFF0EA; --shadow: 0 18px 45px rgba(23, 67, 57, .09); }
     * { box-sizing: border-box; }
@@ -23,7 +24,7 @@
     .workflow i { width: 28px; height: 1px; background: var(--line); }
     .workspace { display: block; }
     .panel { background: rgba(255,255,255,.92); border: 1px solid var(--line); border-radius: 22px; padding: 32px; box-shadow: var(--shadow); }
-    .generator { width: min(100%, 980px); min-height: 650px; margin: 0 auto; }
+    .generator { width: min(100%, 980px); margin: 0 auto; }
     .panel-head { display: flex; justify-content: space-between; gap: 18px; align-items: start; margin-bottom: 22px; }
     h2 { margin: 0 0 7px; font-size: 27px; letter-spacing: -.02em; }
     .panel-head p, .helper { margin: 0; color: var(--muted); font: 14px/1.55 Arial, sans-serif; }
@@ -137,21 +138,23 @@
 
   <main class="app-shell">
     <header class="topbar">
-      <div><div class="kicker">StudyBuddy / workspace</div><h1>Make your notes<br>work harder.</h1></div>
+      <div class="brand-heading"><a href="/" aria-label="StudyBuddy home"><img class="brand-logo reveal-target" src="/design/logo/logo.png" alt="StudyBuddy study companion" /></a><div><div class="kicker">StudyBuddy / workspace</div><h1>Make your notes<br>work harder.</h1></div></div>
       <p>Turn lessons, screenshots, and documents into a clear reviewer you can actually study from.</p>
     </header>
+    <div class="auth-actions" aria-label="Account actions"><a class="auth-login" href="#login">Log in</a><a class="auth-register" href="#register">Register</a></div>
     <div class="workflow" aria-label="Study workflow"><span data-step="1">Add material</span><i></i><span data-step="2">Choose a mode</span><i></i><span data-step="3">Study your result</span></div>
 
-    <section class="workspace">
+    <section class="workspace" id="workspace">
       <div class="panel generator">
         <div class="panel-head"><div><h2>AI reviewer generator</h2><p>Start with pasted notes or upload a study file. You choose what the AI creates.</p></div><span class="status">Ready to study</span></div>
         <div class="source-grid">
           <div><label class="field-label" for="lesson-notes">Your notes or instructions</label><textarea id="lesson-notes" placeholder="Paste a lesson, topic, or instructions here..."></textarea></div>
           <div class="upload-box" id="upload-box"><strong>Bring in files</strong><small>Drop files here or add one or several PDFs, text files, or images</small><label class="file-button" title="Add files" aria-label="Add files">+<input type="file" id="source-file" accept=".txt,.md,.pdf,.doc,.docx,image/*" multiple></label><div class="file-list" id="file-list" aria-live="polite"></div><span class="file-name" id="file-name">No files selected</span></div>
         </div>
-        <div class="settings"><div><label class="field-label" for="card-settings">Flashcard settings</label><input id="card-settings" type="text" placeholder="e.g. 8 multiple-choice cards"></div><div><label class="field-label" for="review-title">Reviewer focus</label><input id="review-title" type="text" placeholder="e.g. exam essentials"></div></div>
-        <p class="helper">Your settings are used when you choose the enhanced reviewer option.</p>
-        <div class="actions" id="review-actions"><button class="primary" id="review-only" onclick="createReview('reviewer')">Create reviewer only</button><button class="primary" id="enhance-review" onclick="createReview('enhance')">Enhance + make flashcards</button></div>
+        <div class="actions" id="review-actions" hidden><button class="primary" id="review-only" onclick="prepareReview('reviewer')">Generate an enhanced reviewer</button><button class="primary" id="enhance-review" onclick="prepareReview('enhance')">Generate enhanced reviewer + flashcards</button></div>
+        <div class="settings" id="review-settings" hidden><div id="focus-setting"><label class="field-label" for="review-title">Reviewer focus <span class="optional-label">Optional</span></label><input id="review-title" type="text" placeholder="e.g. exam essentials"></div><div id="flashcard-setting" hidden><span class="field-label" id="card-type-label">Flashcard type</span><div class="flashcard-type-choices" role="radiogroup" aria-labelledby="card-type-label"><button type="button" class="type-choice selected" data-card-type="true or false" aria-pressed="true"><strong>True or false</strong><span>Quick memory checks</span></button><button type="button" class="type-choice" data-card-type="multiple-choice" aria-pressed="false"><strong>Multiple-choice</strong><span>Pick the best answer</span></button><button type="button" class="type-choice" data-card-type="enumeration" aria-pressed="false"><strong>Enumeration</strong><span>Recall a list of items</span></button><button type="button" class="type-choice" data-card-type="short-answer" aria-pressed="false"><strong>Short-answer</strong><span>Explain it in your words</span></button><button type="button" class="type-choice" data-card-type="mixed" aria-pressed="false"><strong>Mixed types</strong><span>A balanced study set</span></button></div><select id="card-type" class="visually-hidden" tabindex="-1" aria-hidden="true"><option value="true or false">True or false</option><option value="multiple-choice">Multiple-choice</option><option value="enumeration">Enumeration</option><option value="short-answer">Short-answer</option><option value="mixed">Mixed question types</option></select><label class="field-label count-label" for="card-count">Number of cards</label><input id="card-count" type="number" min="1" max="30" value="10"><div id="option-count-wrap" hidden><label class="field-label count-label" for="option-count">Choices per card</label><input id="option-count" type="number" min="2" max="6" value="4"></div><label class="field-label count-label" for="card-settings">Extra instructions <span class="optional-label">Optional</span></label><input id="card-settings" type="text" placeholder="e.g. focus on key terms"></div></div>
+        <p class="helper" id="settings-helper" hidden>These options are optional. You can generate with the defaults.</p>
+        <div class="actions settings-actions" id="generate-actions" hidden><button class="primary" id="generate-review" onclick="createReview('reviewer')">Generate enhanced reviewer</button><button class="primary" id="generate-enhance" onclick="createReview('enhance')">Generate enhanced reviewer + flashcards</button></div>
         <div id="results"></div>
       </div>
     </section>
@@ -288,11 +291,24 @@
     let selectedFiles = [];
 
     function showReviewChoices() {
-      document.getElementById('review-actions').classList.add('ready');
+      updateMaterialState();
+    }
+
+    function updateMaterialState() {
+      const hasMaterial = Boolean(document.getElementById('lesson-notes').value.trim() || selectedFiles.length);
+      const reviewActions = document.getElementById('review-actions');
+      reviewActions.hidden = !hasMaterial;
+      reviewActions.classList.toggle('ready', hasMaterial);
+      if (!hasMaterial) {
+        document.getElementById('review-settings').hidden = true;
+        document.getElementById('settings-helper').hidden = true;
+        document.getElementById('generate-actions').hidden = true;
+        document.getElementById('generate-actions').classList.remove('ready');
+      }
     }
 
     document.getElementById('lesson-notes').addEventListener('input', (event) => {
-      if (event.target.value.trim()) showReviewChoices();
+      updateMaterialState();
     });
 
     const uploadBox = document.getElementById('upload-box');
@@ -328,7 +344,7 @@
       });
       selectedFiles = [...selectedFiles, ...newFiles];
       renderFileList();
-      if (selectedFiles.length) showReviewChoices();
+      updateMaterialState();
     }
 
     function renderFileList() {
@@ -340,22 +356,49 @@
     function removeFile(index) {
       selectedFiles.splice(index, 1);
       renderFileList();
-      if (!selectedFiles.length && !document.getElementById('lesson-notes').value.trim()) {
-        document.getElementById('review-actions').classList.remove('ready');
-      }
+      updateMaterialState();
     }
 
     function toggleChat() {
       const drawer = document.getElementById('chat-drawer');
       const isOpen = drawer.classList.toggle('open');
+      document.querySelector('.auth-actions').classList.toggle('chat-open', isOpen);
       document.getElementById('chat-launcher').setAttribute('aria-expanded', String(isOpen));
     }
+
+    function prepareReview(mode) {
+      document.getElementById('review-settings').hidden = false;
+      document.getElementById('settings-helper').hidden = false;
+      document.getElementById('flashcard-setting').hidden = mode !== 'enhance';
+      updateFlashcardControls();
+      document.getElementById('generate-actions').hidden = false;
+      document.getElementById('generate-actions').classList.add('ready');
+      document.getElementById('generate-review').hidden = mode === 'enhance';
+      document.getElementById('generate-enhance').hidden = mode !== 'enhance';
+    }
+
+    function updateFlashcardControls() {
+      const type = document.getElementById('card-type').value;
+      document.getElementById('option-count-wrap').hidden = type !== 'multiple-choice' && type !== 'enumeration';
+    }
+
+    document.querySelectorAll('.type-choice').forEach((choice) => {
+      choice.addEventListener('click', () => {
+        document.getElementById('card-type').value = choice.dataset.cardType;
+        document.querySelectorAll('.type-choice').forEach((item) => {
+          const selected = item === choice;
+          item.classList.toggle('selected', selected);
+          item.setAttribute('aria-pressed', String(selected));
+        });
+        updateFlashcardControls();
+      });
+    });
 
     async function createReview(mode) {
       let notes = document.getElementById('lesson-notes').value.trim();
       const results = document.getElementById('results');
       if (!notes && !selectedFiles.length) { results.innerHTML = '<p class="helper">Add notes or choose a file first.</p>'; return; }
-      const buttons = [document.getElementById('review-only'), document.getElementById('enhance-review')];
+      const buttons = [document.getElementById('generate-review'), document.getElementById('generate-enhance')];
       buttons.forEach(button => { button.disabled = true; });
       results.innerHTML = '<p class="helper">Reading your material and building the reviewer...</p>';
 
@@ -371,7 +414,7 @@
             files.push({ mimeType: selectedFile.type || 'application/octet-stream', data: dataUrl.split(',')[1] });
           }
         }
-        const res = await fetch('/api/review', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: notes, files, file: files[0] || null, mode, settings: document.getElementById('card-settings').value.trim() }) });
+        const res = await fetch('/api/review', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: notes, files, file: files[0] || null, mode, settings: document.getElementById('card-settings').value.trim(), focus: document.getElementById('review-title').value.trim(), cardCount: document.getElementById('card-count').value, cardType: document.getElementById('card-type').value, optionCount: document.getElementById('option-count').value }) });
         const responseText = await res.text();
         let data;
         try {

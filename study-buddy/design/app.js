@@ -7,6 +7,7 @@ let chatHistory = [];
 
 function initializeScrollReveals() {
   const revealTargets = [
+    document.querySelector('.brand-logo'),
     document.querySelector('.generator'),
     ...document.querySelectorAll('.feature-card'),
     document.querySelector('.architecture'),
@@ -41,6 +42,35 @@ function initializeScrollReveals() {
 }
 
 initializeScrollReveals();
+
+function initializeHeaderScroll() {
+  const header = document.querySelector('.topbar');
+  if (!header) return;
+
+  let previousScroll = window.scrollY;
+  let ticking = false;
+
+  const updateHeader = () => {
+    const currentScroll = window.scrollY;
+    const movingDown = currentScroll > previousScroll + 6;
+    const movingUp = currentScroll < previousScroll - 6;
+
+    if (currentScroll <= 16 || movingUp) header.classList.remove('scroll-hidden');
+    else if (movingDown) header.classList.add('scroll-hidden');
+
+    previousScroll = currentScroll;
+    ticking = false;
+  };
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      window.requestAnimationFrame(updateHeader);
+      ticking = true;
+    }
+  }, { passive: true });
+}
+
+initializeHeaderScroll();
 
 function saveChatMessage(data) {
   chatHistory = [...chatHistory, { sender: data.sender, message: data.message }].slice(-30);
@@ -124,12 +154,53 @@ function prepareContactMessage(event) {
 
 let selectedFiles = [];
 
-function showReviewChoices() {
-  document.getElementById('review-actions').classList.add('ready');
+function updateMaterialState() {
+  const hasMaterial = Boolean(document.getElementById('lesson-notes').value.trim() || selectedFiles.length);
+  const reviewActions = document.getElementById('review-actions');
+  reviewActions.hidden = !hasMaterial;
+  reviewActions.classList.toggle('ready', hasMaterial);
+  if (!hasMaterial) {
+    document.getElementById('review-settings').hidden = true;
+    document.getElementById('settings-helper').hidden = true;
+    document.getElementById('generate-actions').hidden = true;
+    document.getElementById('generate-actions').classList.remove('ready');
+  }
 }
 
+function showReviewChoices() {
+  updateMaterialState();
+}
+
+function prepareReview(mode) {
+  document.getElementById('review-settings').hidden = false;
+  document.getElementById('settings-helper').hidden = false;
+  document.getElementById('flashcard-setting').hidden = mode !== 'enhance';
+  updateFlashcardControls();
+  document.getElementById('generate-actions').hidden = false;
+  document.getElementById('generate-actions').classList.add('ready');
+  document.getElementById('generate-review').hidden = mode === 'enhance';
+  document.getElementById('generate-enhance').hidden = mode !== 'enhance';
+}
+
+function updateFlashcardControls() {
+  const type = document.getElementById('card-type').value;
+  document.getElementById('option-count-wrap').hidden = type !== 'multiple-choice' && type !== 'enumeration';
+}
+
+document.querySelectorAll('.type-choice').forEach((choice) => {
+  choice.addEventListener('click', () => {
+    document.getElementById('card-type').value = choice.dataset.cardType;
+    document.querySelectorAll('.type-choice').forEach((item) => {
+      const selected = item === choice;
+      item.classList.toggle('selected', selected);
+      item.setAttribute('aria-pressed', String(selected));
+    });
+    updateFlashcardControls();
+  });
+});
+
 document.getElementById('lesson-notes').addEventListener('input', (event) => {
-  if (event.target.value.trim()) showReviewChoices();
+  updateMaterialState();
 });
 
 const uploadBox = document.getElementById('upload-box');
@@ -164,7 +235,7 @@ function addFiles(fileList) {
   });
   selectedFiles = [...selectedFiles, ...newFiles];
   renderFileList();
-  if (selectedFiles.length) showReviewChoices();
+  updateMaterialState();
 }
 
 function renderFileList() {
@@ -176,16 +247,16 @@ function renderFileList() {
 function removeFile(index) {
   selectedFiles.splice(index, 1);
   renderFileList();
-  if (!selectedFiles.length && !document.getElementById('lesson-notes').value.trim()) {
-    document.getElementById('review-actions').classList.remove('ready');
-  }
+  updateMaterialState();
 }
 
 function toggleChat() {
   const drawer = document.getElementById('chat-drawer');
   const launcher = document.getElementById('chat-launcher');
+  const authActions = document.querySelector('.auth-actions');
   const isOpen = drawer.classList.toggle('open');
   launcher.classList.toggle('is-open', isOpen);
+  authActions.classList.toggle('chat-open', isOpen);
   launcher.setAttribute('aria-expanded', String(isOpen));
 }
 
@@ -193,7 +264,7 @@ async function createReview(mode) {
   let notes = document.getElementById('lesson-notes').value.trim();
   const results = document.getElementById('results');
   if (!notes && !selectedFiles.length) { results.innerHTML = '<p class="helper">Add notes or choose a file first.</p>'; return; }
-  const buttons = [document.getElementById('review-only'), document.getElementById('enhance-review')];
+  const buttons = [document.getElementById('generate-review'), document.getElementById('generate-enhance')];
   buttons.forEach(button => { button.disabled = true; });
   results.innerHTML = '<p class="helper">Reading your material and building the reviewer...</p>';
 
@@ -209,7 +280,7 @@ async function createReview(mode) {
         files.push({ mimeType: selectedFile.type || 'application/octet-stream', data: dataUrl.split(',')[1] });
       }
     }
-    const res = await fetch('/api/review', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: notes, files, file: files[0] || null, mode, settings: document.getElementById('card-settings').value.trim() }) });
+    const res = await fetch('/api/review', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: notes, files, file: files[0] || null, mode, settings: document.getElementById('card-settings').value.trim(), focus: document.getElementById('review-title').value.trim(), cardCount: document.getElementById('card-count').value, cardType: document.getElementById('card-type').value, optionCount: document.getElementById('option-count').value }) });
     const responseText = await res.text();
     let data;
     try {

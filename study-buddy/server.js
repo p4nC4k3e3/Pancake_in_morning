@@ -206,7 +206,7 @@ ${notes}`;
 
 // Review uploaded or pasted study material.
 app.post('/api/review', async (req, res) => {
-  const { text = '', files = [], file, mode = 'reviewer', settings = '' } = req.body;
+  const { text = '', files = [], file, mode = 'reviewer', settings = '', focus = '', cardCount = '10', cardType = 'true or false', optionCount = '4' } = req.body;
   const attachments = Array.isArray(files) ? files : (file ? [file] : []);
   const validAttachments = attachments.filter(attachment => attachment?.data && attachment?.mimeType);
 
@@ -217,7 +217,8 @@ app.post('/api/review', async (req, res) => {
   const wantsCards = mode === 'enhance';
   const prompt = `You are a helpful study tutor. Analyze the user's study material.
 Create a clear reviewer with a concise summary, important concepts, and useful explanations.
-${wantsCards ? `Also create flashcards based on the user's requested settings. Preserve these settings exactly when they are provided: ${settings || 'Use a sensible default of 4 to 6 question-and-answer cards.'} For multiple-choice cards, put the exact correct option text in correctOption.` : 'Do not create flashcards in this response.'}
+${focus ? `Focus the reviewer on: ${focus}` : 'Use the most helpful focus for the material.'}
+${wantsCards ? `Also create exactly ${Math.min(30, Math.max(1, Number.parseInt(cardCount, 10) || 10))} flashcards. Use ${cardType} format. For multiple-choice or enumeration cards, provide ${Math.min(6, Math.max(2, Number.parseInt(optionCount, 10) || 4))} choices per card. If the user supplied extra flashcard instructions, follow them: ${settings || 'None'}. For multiple-choice cards, put the exact correct option text in correctOption.` : 'Do not create flashcards in this response.'}
 Return valid JSON only.
 
 Study material:
